@@ -1,0 +1,7 @@
+Id:95109
+Date=[30-03-2020 10:30]
+Sender=[Johan Peter Uldall Fynbo<jfynbo@nbi.ku.dk>]
+Recipient=[]
+Subject=[Python extract]
+Attachments=[arcsub.fits,extract.py,spec1.fitsspec1_1dw.fits]
+Body=[]
