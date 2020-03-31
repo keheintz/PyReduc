@@ -21,6 +21,8 @@ from astropy.modeling.fitting import LevMarLSQFitter
 from photutils.aperture import RectangularAperture, aperture_photometry
 
 from skimage.feature import peak_local_max
+from scipy.optimize import curve_fit
+import pandas as pd
 
 #def disable_mplkeymaps():
 #    rc('keymap', 
@@ -40,6 +42,12 @@ from skimage.feature import peak_local_max
 FONTSIZE = 12 # Change it on your computer if you wish.
 rcParams.update({'font.size': FONTSIZE})
 
+fitter = LevMarLSQFitter()
+
+def gaussian(x, mu, sig, amp, bg):
+    return bg + amp*np.exp(-0.5*(x-mu)**2/sig**2)
+
+
 #%%
 DATAPATH = Path('./')
 
@@ -57,7 +65,7 @@ LINE_FITTER = LevMarLSQFitter()
 FITTING_MODEL_ID = 'Chebyshev'
 ORDER_ID = 6 
 NSUM_ID = 10
-FWHM_ID = 1.5 # rough guess of FWHM of lines in IDENTIFY (pixels)
+FWHM_ID = 2.5 # rough guess of FWHM of lines in IDENTIFY (pixels)
 
 # Parameters for REIDENTIFY
 FITTING_MODEL_REID = 'Chebyshev' # 2-D fitting function
