@@ -12,6 +12,9 @@ The script setup.py defines all the packages and gobal parameters. It is run by 
 
 2) fitarcdata.py: fit a checychef polynomium to the pixel to wavelength relation. 
 
-3) reidentify.py: 2d wavelength calibration
+3) extract1d.py: 2d wavelength calibration and extraction of the wavelength calibrated 1d spectrum
 
-4) extract1d.py: extract the wavelength calibrated 1d spectrum
+Missing:
+1) the equivalents of transform, standard and sensfunc in IRAF
+2) implementation of optical extraction
+3) implementation of output noise-spectrum
