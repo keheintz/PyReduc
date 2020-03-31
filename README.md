@@ -16,6 +16,6 @@ The script setup.py defines all the packages and gobal parameters. It is run by 
 
 Missing:
 1) It should be possible to delete lines from the idarc list.
-2) the equivalents of transform, standard and sensfunc in IRAF.
-3) implementation of optical extraction.
+2) the equivalents of 'fitcoords', 'transform', 'standard', 'sensfunc' and 'calibrate' in IRAF.
+3) implementation of optimal extraction (ala Keith Horne).
 4) implementation of output noise-spectrum.
