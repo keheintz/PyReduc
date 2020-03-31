@@ -15,6 +15,7 @@ The script setup.py defines all the packages and gobal parameters. It is run by 
 3) extract1d.py: 2d wavelength calibration and extraction of the wavelength calibrated 1d spectrum
 
 Missing:
-1) the equivalents of transform, standard and sensfunc in IRAF
-2) implementation of optical extraction
-3) implementation of output noise-spectrum
+1) Update identify such that it becomes iterative (i.e. reads an existing set of measurements and updtes to that. Also, it should be possible to delete lines from the list.
+2) the equivalents of transform, standard and sensfunc in IRAF
+3) implementation of optical extraction
+4) implementation of output noise-spectrum
