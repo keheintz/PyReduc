@@ -14,7 +14,7 @@ There are also files for a standard star:
 
 std.fits - standard star observation 
 
-(http://www.ing.iac.es/Astronomy/observing/manuals/html_manuals/tech_notes/tn065-100/he3.html)
+(http://www.ing.iac.es/Astronomy/observing/manuals/html_manuals/tech_notes/tn065-100/hd849.html)
 
 arcsub_std.fits - arc-line file 
 
