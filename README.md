@@ -45,7 +45,7 @@ The script setup.py defines all the packages and gobal parameters. It is run by 
 Missing (obviously a lot):
 1) Ideally, the identify.py and fitarcdata.py should be combined such that is possible to iteratively add and delete lines from the idarc list, fit the lines, go back to add/remove more lines, etc.
 
-2) the equivalents of 'fitcoords', 'transform', 'standard', 'sensfunc' and 'calibrate' in IRAF.
+2) the equivalents of 'fitcoords', 'transform', 'standard', 'sensfunc' and 'calibrate' in IRAF. A version of standard.py has now been written, but that still needs to be improved.
 
 3) implementation of optimal extraction (ala Keith Horne).
 
