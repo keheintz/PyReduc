@@ -6,7 +6,7 @@ exec(open("setup.py").read())
 # =============================================================================
 # For REIDENTIFY, I used astropy.modeling.models.Chebyshev2D
 
-# Read idacr as astropy table
+# Read idarc 
 try:
     data = np.loadtxt('database/idarc.txt')
     pixnumber = data[:,0]
@@ -487,6 +487,6 @@ plt.show()
 
 #Write spectrum to a file
 df_frame = {'wave':ap_wavelen, 'flux':ap_summed}
-df = pd.DataFrame(df_frame,dtype='float64')
+df = pd.DataFrame(df_frame,dtype='float32')
 df.to_csv('spec1_1dw.txt', header=None, index=None, sep=' ')
 

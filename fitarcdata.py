@@ -13,8 +13,8 @@ try:
 except IOError:
     print("File not accessible")
 
-fig = plt.figure()
-ax = fig.add_subplot(111)
+#fig = plt.figure()
+#ax = fig.add_subplot(111)
 
 ID_init = dict(peak=pixnumber,
                wavelength=wavelength)
