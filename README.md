@@ -17,7 +17,8 @@ arcsub_std.fits - arc-line file
 
 We have started from Yoonsoo Bach's notebook on github:
 https://nbviewer.jupyter.org/github/ysBach/SNU_AOclass/blob/master/Notebooks/Spectroscopy_in_Python.ipynb?fbclid=IwAR22YsWpk-uNw7Iz9LGolRD6kbtpcTeqmYDKgfeRIQHQ42M8OLfRbRzJmeY
-That we use as a skeleton to start from.
+
+That we have used as a skeleton to start from.
 
 
 Like iraf we try to keep output from scripts in the database folder.
