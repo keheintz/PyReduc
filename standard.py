@@ -1,10 +1,11 @@
 #The equivalent of "standard" in IRAF/onedspec
+#https://astro.uni-bonn.de/~sysstw/lfa_html/iraf/noao.onedspec.standard.html
 
 #Run the setup script
 exec(open("setup.py").read())
 
 #Open file for output
-f = open('std', 'w')
+f = open('database/std', 'w')
 
 #name of standard star
 stdnm = 'hd849'
@@ -20,7 +21,8 @@ std_data = np.loadtxt('std_1dw.dat')
 lam = std_data[:,0]
 stdcounts = std_data[:,1]/exptime
 
-f.write("%s  %s  %5.1f %4.3f\n" % (stdnm, 'std_1dw.dat', exptime, airmass))
+f.write("%s  %s  %s\n" % ('#', stdnm, 'std_1dw.dat'))
+f.write("%5.1f %4.3f\n" % (exptime, airmass))
 
 #Read the file with the flux measurements
 #SET .Z.UNITS = "micro-Janskys"
@@ -71,8 +73,7 @@ while get_new_line:
               minflux = np.amin(stdcounts[window])
               plt.plot([wl,wl],[minflux,maxflux],marker="|", color='b', markersize=20)  
     else:
-        print("End?")
-        answer = input(" [Y/N] : ")
+        answer = input("End [Y/N]?: ")
         if answer.lower() in ['yes', 'y', '']:
              get_new_line = False
              plt.close("all")
@@ -80,11 +81,14 @@ while get_new_line:
 plt.show()
 
 #Write to file
+#Convert micro-Jansky to erg/s/cm/AA (https://en.wikipedia.org/wiki/AB_magnitude)
+flam = refflux/1.6/3.34e4/reflam**2
+
 for n in range(0,len(reflam)):
      wl = reflam[n]
      if (wl > np.amin(lam)) & (wl < np.amax(lam)) & (wl not in deleted):
            window = (lam > wl-0.5*bandwidth) & (lam < wl+0.5*bandwidth)
-           f.write("%.1f   %.1f   %.1f\n" %(wl,refflux[n],np.mean(stdcounts[window])))
-print('Output file std has been made.')
+           f.write("%.0f   %.3e   %.2f    %.1f\n" %(wl,flam[n],bandwidth,np.mean(stdcounts[window])))
+print('Output file std has been made in the databas.')
 
 f.close

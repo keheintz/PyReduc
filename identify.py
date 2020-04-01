@@ -84,7 +84,7 @@ while get_new_line:
 
     else:
         print("End input?")
-        answer = input(" [Y/N] : ")
+        answer = input("End input [Y/N]?: ")
         if answer.lower() in ['yes', 'y', '']: 
              get_new_line = False 
              plt.close("all")
