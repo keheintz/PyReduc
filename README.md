@@ -1,6 +1,19 @@
 This repo is dedicated to provide an IRAF-like reduction scheme for long-slit spectra using Python. This is not because IRAF is bad (it is not), but because it is no longer supported so we need to find other solutions that easy to install and easy to introduce, e.g. as part of teaching.
 
-The philosophy: let's first make something quickly that works. Then we can refine it. Otherwise, I fear it will just go nowhere. We will assume that the science-file and arc-lamp file are made before running these reduction scripts. They should be  fits-files with the same size and with dispersion along rows.
+The philosophy: let's first make something quickly that works. Then we can refine it. Otherwise, I fear it will just go nowhere. We will assume that the science-file and arc-lamp file are made before running these reduction scripts. These files are called:
+
+spec1.fits - science file
+arcsub.fits - arc-line file
+
+(in this case a grism 4 spectrum of a quasar taken with the instrument Alfosc mounted on the Nordic Optical Telescope).
+
+They should be  fits-files with the same size and with dispersion along rows.
+
+There are also files for a standard star:
+
+std.fits - standard star observation 
+(http://www.ing.iac.es/Astronomy/observing/manuals/html_manuals/tech_notes/tn065-100/he3.html)
+arcsub_std.fits - arc-line file 
 
 We have started from Yoonsoo Bach's notebook on github:
 https://nbviewer.jupyter.org/github/ysBach/SNU_AOclass/blob/master/Notebooks/Spectroscopy_in_Python.ipynb?fbclid=IwAR22YsWpk-uNw7Iz9LGolRD6kbtpcTeqmYDKgfeRIQHQ42M8OLfRbRzJmeY
