@@ -48,7 +48,6 @@ for n in range(0,len(reflam)):
      wl = reflam[n]
      if (wl > np.amin(lam)) & (wl < np.amax(lam)):
            window = (lam > wl-0.5*bandwidth) & (lam < wl+0.5*bandwidth)
-           f.write("%.1f   %.1f   %.1f\n" %(wl,refflux[n],np.mean(stdcounts[window])))
            maxflux = np.amax(stdcounts[window])
            minflux = np.amin(stdcounts[window])
            plt.plot([wl-0.5*bandwidth,wl-0.5*bandwidth],[minflux,maxflux],color='r', lw=1.5)
@@ -56,5 +55,36 @@ for n in range(0,len(reflam)):
            plt.plot(lam[window],lam[window]/lam[window]+minflux,color='r', lw=1.5)
            plt.plot(lam[window],lam[window]/lam[window]+maxflux,color='r', lw=1.5)
 
+#Click on red boxes that should be deleted.
+deleted = list()
+get_new_line = True
+while get_new_line:
+    points = plt.ginput(n=1, timeout=30, show_clicks=True, mouse_add=1, mouse_stop=2)
+    if len(points) == 1:
+        pix_ref, _ = points[0]
+        select = np.abs(reflam - pix_ref) < bandwidth/2
+        print(reflam[select])
+        for wl in (reflam[select]): 
+              deleted.append([wl])
+              window = (lam > wl-0.5*bandwidth) & (lam < wl+0.5*bandwidth)
+              maxflux = np.amax(stdcounts[window])
+              minflux = np.amin(stdcounts[window])
+              plt.plot([wl],[(minflux+maxflux)/2.],marker="X", color='b', markersize=20)  
+    else:
+        print("End?")
+        answer = input(" [Y/N] : ")
+        if answer.lower() in ['yes', 'y', '']:
+             get_new_line = False
+             plt.close("all")
+ 
 plt.show()
+print(deleted)
+
+#Write to file
+for n in range(0,len(reflam)):
+     wl = reflam[n]
+     if (wl > np.amin(lam)) & (wl < np.amax(lam)) & (wl not in deleted):
+           window = (lam > wl-0.5*bandwidth) & (lam < wl+0.5*bandwidth)
+           f.write("%.1f   %.1f   %.1f\n" %(wl,refflux[n],np.mean(stdcounts[window])))
+
 f.close
