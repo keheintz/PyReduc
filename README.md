@@ -41,11 +41,13 @@ The script setup.py defines all the packages and gobal parameters. It is run by 
 3) extract1d.py: 2d wavelength calibration and extraction of the wavelength calibrated 1d spectrum.
 
 
+4) standard.py (one step in the flux calibration)
+
 
 Missing (obviously a lot):
 1) Ideally, the identify.py and fitarcdata.py should be combined such that is possible to iteratively add and delete lines from the idarc list, fit the lines, go back to add/remove more lines, etc.
 
-2) the equivalents of 'fitcoords', 'transform', 'standard', 'sensfunc' and 'calibrate' in IRAF. A version of standard.py has now been written, but that still needs to be improved.
+2) the equivalents of 'fitcoords', 'transform', 'sensfunc' and 'calibrate' in IRAF. 
 
 3) implementation of optimal extraction (ala Keith Horne).
 
