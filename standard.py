@@ -69,7 +69,7 @@ while get_new_line:
               window = (lam > wl-0.5*bandwidth) & (lam < wl+0.5*bandwidth)
               maxflux = np.amax(stdcounts[window])
               minflux = np.amin(stdcounts[window])
-              plt.plot([wl],[(minflux+maxflux)/2.],marker="X", color='b', markersize=20)  
+              plt.plot([wl,wl],[minflux,maxflux],marker="|", color='b', markersize=20)  
     else:
         print("End?")
         answer = input(" [Y/N] : ")
