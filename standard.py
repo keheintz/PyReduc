@@ -40,7 +40,7 @@ plt.ylabel('Counts')
 plt.xlabel('Observed wavelength [Å]')
 plt.ylabel('Counts per sec')
 plt.plot(lam,stdcounts, lw = 1,
-         alpha=0.5, label='1d extracted spectrum')
+         alpha=0.5, label='1d extracted standard star spectrum')
 plt.legend()
 
 #Overplot boxes with reference flux measurements
@@ -56,6 +56,7 @@ for n in range(0,len(reflam)):
            plt.plot(lam[window],lam[window]/lam[window]+maxflux,color='r', lw=1.5)
 
 #Click on red boxes that should be deleted.
+print('Double left-click on red boxes that should be deleted. Other mouse-clicks to exit.')
 deleted = list()
 get_new_line = True
 while get_new_line:
@@ -63,7 +64,6 @@ while get_new_line:
     if len(points) == 1:
         pix_ref, _ = points[0]
         select = np.abs(reflam - pix_ref) < bandwidth/2
-        print(reflam[select])
         for wl in (reflam[select]): 
               deleted.append([wl])
               window = (lam > wl-0.5*bandwidth) & (lam < wl+0.5*bandwidth)
@@ -78,7 +78,6 @@ while get_new_line:
              plt.close("all")
  
 plt.show()
-print(deleted)
 
 #Write to file
 for n in range(0,len(reflam)):
@@ -86,5 +85,6 @@ for n in range(0,len(reflam)):
      if (wl > np.amin(lam)) & (wl < np.amax(lam)) & (wl not in deleted):
            window = (lam > wl-0.5*bandwidth) & (lam < wl+0.5*bandwidth)
            f.write("%.1f   %.1f   %.1f\n" %(wl,refflux[n],np.mean(stdcounts[window])))
+print('Output file std has been made.')
 
 f.close
