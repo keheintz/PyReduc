@@ -5,7 +5,7 @@
 exec(open("setup.py").read())
 
 #Open file for output
-f = open('database/std', 'w')
+f = open('database/stdinfo', 'w')
 
 #name of standard star
 stdnm = 'hd849'
@@ -23,6 +23,7 @@ stdcounts = std_data[:,1]/exptime
 
 f.write("%s  %s  %s\n" % ('#', stdnm, 'std_1dw.dat'))
 f.write("%5.1f %4.3f\n" % (exptime, airmass))
+f.close
 
 #Read the file with the flux measurements
 #SET .Z.UNITS = "micro-Janskys"
@@ -84,11 +85,12 @@ plt.show()
 #Convert micro-Jansky to erg/s/cm/AA (https://en.wikipedia.org/wiki/AB_magnitude)
 flam = refflux/1.6/3.34e4/reflam**2
 
+f = open('database/stddata', 'w')
 for n in range(0,len(reflam)):
      wl = reflam[n]
      if (wl > np.amin(lam)) & (wl < np.amax(lam)) & (wl not in deleted):
            window = (lam > wl-0.5*bandwidth) & (lam < wl+0.5*bandwidth)
            f.write("%.0f   %.3e   %.2f    %.1f\n" %(wl,flam[n],bandwidth,np.mean(stdcounts[window])))
-print('Output file std has been made in the databas.')
+print('Output files stdinfo and stddata have been written to the database.')
 
 f.close
