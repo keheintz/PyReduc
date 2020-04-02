@@ -1,6 +1,6 @@
 This repo is dedicated to provide an IRAF-like reduction scheme for long-slit spectra using Python. This is not because IRAF is bad (it is not), but because it is no longer supported so we need to find other solutions that easy to install and easy to introduce, e.g. as part of teaching.
 
-The philosophy: let's first make something quickly that works. Then we can refine it. Otherwise, I fear it will just go nowhere. We will assume that the science-file and arc-lamp file are made before running these reduction scripts. These files are called:
+The philosophy: let's first make something quickly that works. Then we can refine it. Otherwise, I fear it will just go nowhere. We will assume that the science-file and arc-lamp file are made before running these reduction scripts. Scripts to produce these files will also be written (some of it is there : mkspecbias.py and mkspecflat.py). These files are called:
 
 spec1.fits - science file
 
