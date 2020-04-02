@@ -473,7 +473,7 @@ ap_summed = np.array(ap_summed) / EXPTIME
 
 fig = plt.figure(figsize=(10,5))
 plt.xlim(3600,9300)
-plt.ylim(0,30005)
+plt.ylim(0,np.amax(ap_summed)*1.2)
 plt.xlabel('lambda i Å')
 plt.ylabel('Flux')
 
@@ -488,5 +488,5 @@ plt.show()
 #Write spectrum to a file
 df_frame = {'wave':ap_wavelen, 'flux':ap_summed}
 df = pd.DataFrame(df_frame,dtype='float32')
-df.to_csv('std_1dw.dat', header=None, index=None, sep=' ')
+df.to_csv('spec1_1dw.dat', header=None, index=None, sep=' ')
 

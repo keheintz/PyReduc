@@ -83,7 +83,7 @@ plt.show()
 
 #Write to file
 #Convert micro-Jansky to erg/s/cm/AA (https://en.wikipedia.org/wiki/AB_magnitude)
-flam = refflux/1.6/3.34e4/reflam**2
+flam = refflux/1.e6/3.34e4/reflam**2
 
 f = open('database/stddata', 'w')
 for n in range(0,len(reflam)):

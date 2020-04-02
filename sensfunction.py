@@ -19,6 +19,7 @@ airmass = data[1]
 #Exptime and airmass
 wlstd = datastd[:,0]
 stdflux = datastd[:,1]
+
 bandwidth = datastd[:,2]
 stdcounts = datastd[:,3]
 
@@ -29,6 +30,11 @@ except IOError:
     print("Extinction file is not accessible in the database")
 wlext = dataext[:,0]
 ext = dataext[:,1]
+E = np.ndarray(len(wlstd))
+for n in range(0,len(wlstd)): 
+     ii = (wlext > wlstd[n]-bandwidth[n]) & (wlext < wlstd[n]+bandwidth[n])
+     E[n] = np.mean(ext[ii])
+
 
 #From the description of the IRAF task sensfunc:
 #The calibration factor at each point is computed as 
@@ -44,11 +50,6 @@ ext = dataext[:,1]
 #observations to the relation
 #
 #I have already divided with the exposure time and the bandwidth
-
-E = np.ndarray(len(wlstd))
-for n in range(0,len(wlstd)): 
-     ii = (wlext > wlstd[n]-bandwidth[n]) & (wlext < wlstd[n]+bandwidth[n])
-     E[n] = np.mean(ext[ii])
 
 C = 2.5*np.log10(stdcounts/stdflux) + airmass*E 
 
@@ -88,9 +89,6 @@ plt.suptitle(('Sens Function (Chebyshev order {:d})\n'.format(ORDER_SF)
 plt.show()
 
 #Write chebychev coefficients to a file in the database
-f = open('database/sens_order.dat', 'w')
-f.write("%.0i" %(ORDER_SF))
-f.close
 f = open('database/sens_coeff.dat', 'w')
 for n in range(0,len(coeff_ID)):
       f.write("%.10e \n" %(coeff_ID[n]))

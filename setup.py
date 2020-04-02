@@ -19,6 +19,8 @@ from photutils.aperture import RectangularAperture, aperture_photometry
 
 from skimage.feature import peak_local_max
 from scipy.optimize import curve_fit
+from scipy.interpolate import interp1d
+
 import pandas as pd
 
 FONTSIZE = 12 # Change it on your computer if you wish.
