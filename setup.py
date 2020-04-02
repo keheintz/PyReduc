@@ -5,9 +5,6 @@ from numpy.polynomial.chebyshev import chebfit, chebval
 
 import os as os
 
-# %matplotlib notebook 
-# comment above out when you copy this code to your spyder, etc.
-
 from matplotlib import pyplot as plt
 from matplotlib import gridspec, rcParams, rc
 from matplotlib.widgets import Cursor
@@ -57,8 +54,8 @@ if not os.path.exists(newpath):
     os.makedirs(newpath)
 
 DISPAXIS = 1  # 1 = line = python_axis_1 // 2 = column = python_axis_0
-COMPIMAGE = DATAPATH/'arcsub.fits' # Change directory if needed!
-OBJIMAGE  = DATAPATH/'spec1.fits'
+COMPIMAGE = DATAPATH/'arcsub_std.fits' # Change directory if needed!
+OBJIMAGE  = DATAPATH/'std.fits'
 LINE_FITTER = LevMarLSQFitter()
 
 # Parameters for IDENTIFY
@@ -82,7 +79,7 @@ FWHM_AP = 10
 STEP_AP = 10  # Recentering step size in pixels (dispersion direction)
 ## parameters for sky fitting
 FITTING_MODEL_APSKY = 'Chebyshev'
-ORDER_APSKY = 3
+ORDER_APSKY = 2
 SIGMA_APSKY = 3
 ITERS_APSKY = 5
 ## parameters for aperture tracing
@@ -92,6 +89,10 @@ SIGMA_APTRACE = 3
 ITERS_APTRACE = 5 
 # The fitting is done by SIGMA_APTRACE-sigma ITERS_APTRACE-iters clipped on the
 # residual of data. 
+
+# Parameters for SENSFUNCTION
+FITTING_MODEL_SF = 'chebyshev'
+ORDER_SF = 9 
 
 #%%
 lamphdu = fits.open(COMPIMAGE)
