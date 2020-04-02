@@ -42,7 +42,6 @@ if not os.path.exists(newpath):
 DISPAXIS = 1  # 1 = line = python_axis_1 // 2 = column = python_axis_0
 COMPIMAGE = DATAPATH/'arcsub.fits' # Change directory if needed!
 COMPSTDIMAGE = DATAPATH/'arcsub_std.fits' # Change directory if needed!
-#OBJIMAGE  = DATAPATH/'spec1.fits'
 STDIMAGE  = DATAPATH/'std.fits'
 OBJIMAGE  = DATAPATH/'spec1.fits'
 LINE_FITTER = LevMarLSQFitter()
