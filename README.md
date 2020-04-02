@@ -47,8 +47,10 @@ The script setup.py defines all the packages and gobal parameters. It is run by 
 Missing (obviously a lot):
 1) Ideally, the identify.py and fitarcdata.py should be combined such that is possible to iteratively add and delete lines from the idarc list, fit the lines, go back to add/remove more lines, etc.
 
-2) the equivalents of 'fitcoords', 'transform', and 'calibrate' in IRAF. 
+2) sensfunction.py needs to be improved to allow deletion of points.
 
-3) implementation of optimal extraction (ala Keith Horne).
+3) the equivalent of 'transform' in IRAF that produces a rectified 2d spectrum. 
 
-4) implementation of output noise-spectrum.
+4) implementation of optimal extraction (ala Keith Horne).
+
+5) implementation of output noise-spectrum.
