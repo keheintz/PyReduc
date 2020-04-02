@@ -1,5 +1,7 @@
 #The equivalent of "sensfunc" in IRAF/onedspec
 #https://astro.uni-bonn.de/~sysstw/lfa_html/iraf/noao.onedspec.sensfunc.html
+#As output the script produces two files: sens_order.dat (the order of the chebychev fit), 
+#and sens_coeff.dat (the chebychev coefficients).
 
 #Run the setup script
 exec(open("setup.py").read())
@@ -66,6 +68,8 @@ if FITTING_MODEL_SF.lower() == 'chebyshev':
 else:
     raise ValueError('Function {:s} is not implemented.'.format(FITTING_MODEL_SF))
 
+print(coeff_ID)
+
 
 fig = plt.figure(figsize=(10, 5))
 gs = gridspec.GridSpec(3, 1)
@@ -85,4 +89,13 @@ ax2.grid(ls=':')
 plt.suptitle(('Sens Function (Chebyshev order {:d})\n'.format(ORDER_SF)
               + r'RMSE = {:.2f}'.format(fitRMS)))
 plt.show()
+
+#Write chebychev coefficients to a file in the database
+f = open('database/sens_order.dat', 'w')
+f.write("%.0i" %(ORDER_SF))
+f.close
+f = open('database/sens_coeff.dat', 'w')
+for n in range(0,len(coeff_ID)):
+      f.write("%.10e \n" %(coeff_ID[n]))
+f.close
 
