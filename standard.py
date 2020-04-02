@@ -11,7 +11,7 @@ f = open('database/stdinfo', 'w')
 stdnm = 'hd849'
 
 #get information from header
-std_file = fits.open('std.fits')
+std_file = fits.open(STDIMAGE)
 hdr = std_file[0].header
 exptime = hdr['EXPTIME']
 airmass = hdr['AIRMASS']

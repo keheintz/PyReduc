@@ -21,21 +21,6 @@ from skimage.feature import peak_local_max
 from scipy.optimize import curve_fit
 import pandas as pd
 
-#def disable_mplkeymaps():
-#    rc('keymap', 
-#       fullscreen='',
-#       home='',
-#       back='',
-#       forward='',
-#       pan='',
-#       zoom='',
-#       save='',
-#       quit='q',
-#       grid='',
-#       yscale='',
-#       xscale='',
-#       all_axes=''
-#       )
 FONTSIZE = 12 # Change it on your computer if you wish.
 rcParams.update({'font.size': FONTSIZE})
 
@@ -43,7 +28,6 @@ fitter = LevMarLSQFitter()
 
 def gaussian(x, mu, sig, amp, bg):
     return bg + amp*np.exp(-0.5*(x-mu)**2/sig**2)
-
 
 #%%
 DATAPATH = Path('./')
@@ -55,7 +39,9 @@ if not os.path.exists(newpath):
 
 DISPAXIS = 1  # 1 = line = python_axis_1 // 2 = column = python_axis_0
 COMPIMAGE = DATAPATH/'arcsub_std.fits' # Change directory if needed!
-OBJIMAGE  = DATAPATH/'std.fits'
+COMPSTDIMAGE = DATAPATH/'arcsub_std.fits' # Change directory if needed!
+OBJIMAGE  = DATAPATH/'spec1.fits'
+STDIMAGE  = DATAPATH/'std.fits'
 LINE_FITTER = LevMarLSQFitter()
 
 # Parameters for IDENTIFY
@@ -91,7 +77,7 @@ ITERS_APTRACE = 5
 # residual of data. 
 
 # Parameters for SENSFUNCTION
-FITTING_MODEL_SF = 'chebyshev'
+FITTING_MODEL_SF = 'Chebyshev'
 ORDER_SF = 9 
 
 #%%
@@ -110,6 +96,7 @@ elif DISPAXIS != 1:
     raise ValueError('DISPAXIS must be 1 or 2 (it is now {:d})'.format(DISPAXIS))
 
 EXPTIME = objhdu[0].header['EXPTIME']
+OBJAIRMASS = objhdu[0].header['AIRMASS']
 OBJNAME = objhdu[0].header['OBJECT']
 # Now python axis 0 (Y-direction) is the spatial axis 
 # and 1 (X-direciton) is the wavelength (dispersion) axis.

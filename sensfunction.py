@@ -46,7 +46,7 @@ ext = dataext[:,1]
 #I have already divided with the exposure time and the bandwidth
 
 E = np.ndarray(len(wlstd))
-for n in range(0,len(wlstd)-1): 
+for n in range(0,len(wlstd)): 
      ii = (wlext > wlstd[n]-bandwidth[n]) & (wlext < wlstd[n]+bandwidth[n])
      E[n] = np.mean(ext[ii])
 
@@ -67,9 +67,6 @@ if FITTING_MODEL_SF.lower() == 'chebyshev':
     res_range = np.max(np.abs(residual))
 else:
     raise ValueError('Function {:s} is not implemented.'.format(FITTING_MODEL_SF))
-
-print(coeff_ID)
-
 
 fig = plt.figure(figsize=(10, 5))
 gs = gridspec.GridSpec(3, 1)
