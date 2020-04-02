@@ -1,5 +1,5 @@
 #The equivalent of "calibrate" in IRAF/onedspec
-#https://github.com/joequant/iraf/blob/master/noao/onedspec/doc/calibrate.hlp
+#https://github.com/joequan/tiraf/blob/master/noao/onedspec/doc/calibrate.hlp
 #As input the script requires: 
 #- sens_coeff.dat (the chebychev coefficients). 
 #- the extracted, wavelength-calibrated science-file (from extract1d.py)
@@ -17,12 +17,15 @@ except IOError:
 
 #Read the spectrum to be calibrated
 try:
+    #data = np.loadtxt('std_1dw.dat')
     data = np.loadtxt('spec1_1dw.dat')
 except IOError:
     print("Missing input spectrum to calibrate?")
 wavelength = data[:,0]
 objcounts = data[:,1] 
 airmass = OBJAIRMASS
+exptime = OBJEXPTIME
+print(airmass,exptime)
 
 #Read the atmospheric extinction data for La Palma
 try:

@@ -40,10 +40,11 @@ if not os.path.exists(newpath):
     os.makedirs(newpath)
 
 DISPAXIS = 1  # 1 = line = python_axis_1 // 2 = column = python_axis_0
-COMPIMAGE = DATAPATH/'arcsub_std.fits' # Change directory if needed!
+COMPIMAGE = DATAPATH/'arcsub.fits' # Change directory if needed!
 COMPSTDIMAGE = DATAPATH/'arcsub_std.fits' # Change directory if needed!
-OBJIMAGE  = DATAPATH/'spec1.fits'
+#OBJIMAGE  = DATAPATH/'spec1.fits'
 STDIMAGE  = DATAPATH/'std.fits'
+OBJIMAGE  = DATAPATH/'spec1.fits'
 LINE_FITTER = LevMarLSQFitter()
 
 # Parameters for IDENTIFY
@@ -97,7 +98,7 @@ if DISPAXIS == 2:
 elif DISPAXIS != 1:
     raise ValueError('DISPAXIS must be 1 or 2 (it is now {:d})'.format(DISPAXIS))
 
-EXPTIME = objhdu[0].header['EXPTIME']
+OBJEXPTIME = objhdu[0].header['EXPTIME']
 OBJAIRMASS = objhdu[0].header['AIRMASS']
 OBJNAME = objhdu[0].header['OBJECT']
 # Now python axis 0 (Y-direction) is the spatial axis 
