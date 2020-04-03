@@ -15,27 +15,41 @@ else:
     print ("idarc does not exist in the database. Will make a new file.")
     pix_wl_table = list()
 
-wavelength=[3820.68, 3889.75, 3965.84, 4027.34, 4472.73, 4714.52, 5017.07, 5402.06,
-            5877.246, 5946.48, 6097.86, 6144.77, 6404.02, 6508.33, 6680.15, 6931.39, 7034.36, 7440.95, 
-            7490.93, 8302.61, 8379.68, 8497.7, 8784.61, 9151.2]
+#Reference wavelengths for the arclamp
+#The expected format: wavelength and text (ID of the line)
+wavelengthtable = list()
+wavelength = list()
+infile = open('database/mylines_vac.dat', 'r')
+n=1
+for line in infile:
+      words = line.split()
+      wl = float(words[0])
+      id = str()
+      for i in range(1,len(words)): 
+          id+=words[i]
+          id+=' '
+      wavelengthtable.append([int(n), float(wl), id])
+      wavelength.append(wl)
+      n+=1
+wavelengthtable = np.array(wavelengthtable)
+wavelength = np.array(wavelength)
 
-lowercut_ID = N_SPATIAL//2 - NSUM_ID//2 
+#Print numbered list of reference wavelengths
+#Ideally I would like to print this out in a separate scroll-able window
+for n in range(0,len(wavelength)): print(n+1,wavelength[n],wavelengthtable[n,2])
+
+#Cut out the region of the arc-file to fit to (defined in setup.py)
+lowercut_ID = N_SPATIAL//2 - NSUM_ID//2
 uppercut_ID = N_SPATIAL//2 + NSUM_ID//2
 identify_1 = np.median(lampimage[lowercut_ID:uppercut_ID, :], axis=0)
 
-# For plot and visualization
+# Plot the arclines as a function of pixel number
 max_intens = np.max(identify_1)
-
-
-#disable_mplkeymaps()
 fig = plt.figure()
 ax = fig.add_subplot(111)
 title_str = r'Arc line plot'
-# Plot original spectrum + found peak locations
 x_identify = np.arange(0, len(identify_1))
 ax.plot(x_identify, identify_1, lw=1)
-
-
 ax.grid(ls=':')
 ax.set_xlabel('Pixel number')
 ax.set_ylabel('Pixel value sum')
@@ -47,13 +61,6 @@ if os.path.isfile('database/idarc.txt'):
      for pixval in pix_wl_table[:,0]:
           plt.axvline(pixval, ymin=0.90, ymax=0.95, color='r', lw=1.5)
      pix_wl_table = list(pix_wl_table)
-
-#Print numbered list of reference wavelengths
-n = 1
-print('Reference wavelength list:')
-for wl in wavelength:
-     print(n,wl)
-     n=n+1
 
 print('First zoom, then hit any key to select with right-click on the mouse:')
 # Mark lines in the window and get the x values:
@@ -85,14 +92,13 @@ while get_new_line:
     else:
         print("End input?")
         answer = input("End input [Y/N]?: ")
-        if answer.lower() in ['yes', 'y', '']: 
-             get_new_line = False 
+        if answer.lower() in ['yes', 'y', '']:
+             get_new_line = False
              plt.close("all")
 
 plt.show()
 
-
-# Print to file
+#Print list of pixel numbers and wavelengths to file in the database
 pix_wl_table = np.array(pix_wl_table)
 print(" Pixel to wavelength reference table :")
 df = pd.DataFrame(pix_wl_table[pix_wl_table[:,1].argsort()],dtype='float32')
