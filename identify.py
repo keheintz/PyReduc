@@ -7,9 +7,17 @@ exec(open("setup.py").read())
 # mimics IRAF IDENTIFY
 #   IDENTIIFY image.fits section='middle line' nsum=NSUM_ID
 
+# Read idarc if it exists already
+if os.path.isfile('database/idarc.txt'):
+    print ("idarc exists in the database. I will add to the existing file.")
+    pix_wl_table = np.loadtxt('database/idarc.txt')
+else:
+    print ("idarc does not exist in the database. Will make a new file.")
+    pix_wl_table = list()
+
 wavelength=[3820.68, 3889.75, 3965.84, 4027.34, 4472.73, 4714.52, 5017.07, 5402.06,
-            5877.246, 5946.48, 6404.02, 6680.15, 6931.39, 7034.36, 7440.95, 8302.61, 8379.68,
-            8497.7, 8784.61, 9151.2]
+            5877.246, 5946.48, 6097.86, 6144.77, 6404.02, 6508.33, 6680.15, 6931.39, 7034.36, 7440.95, 
+            7490.93, 8302.61, 8379.68, 8497.7, 8784.61, 9151.2]
 
 lowercut_ID = N_SPATIAL//2 - NSUM_ID//2 
 uppercut_ID = N_SPATIAL//2 + NSUM_ID//2
@@ -34,18 +42,21 @@ ax.set_ylabel('Pixel value sum')
 ax.set_xlim(0,len(identify_1))
 ax.set_title(title_str.format(MINAMP_PK, MINSEP_PK))
 
+#If idarc already exists the overplot existing lines
+if os.path.isfile('database/idarc.txt'):
+     for pixval in pix_wl_table[:,0]:
+          plt.axvline(pixval, ymin=0.90, ymax=0.95, color='r', lw=1.5)
+     pix_wl_table = list(pix_wl_table)
 
-#Print reference wavelengths
+#Print numbered list of reference wavelengths
 n = 1
 print('Reference wavelength list:')
 for wl in wavelength:
      print(n,wl)
      n=n+1
 
-
 print('First zoom, then hit any key to select with right-click on the mouse:')
 # Mark lines in the window and get the x values:
-pix_wl_table = list()
 get_new_line = True
 while get_new_line:
     plt.waitforbuttonpress()
@@ -63,24 +74,28 @@ while get_new_line:
         p0 = [pix_ref, sig0, A0, bg0]
         popt, pcov = curve_fit(gaussian, x_identify[mask], identify_1[mask], p0)
         centroid_fit = popt[0]
-        plt.axvline(centroid_fit, ymin=0.75, ymax=0.95, color='r', lw=0.5)
+        plt.axvline(centroid_fit, ymin=0.90, ymax=0.95, color='r', lw=1.5)
         plt.draw()
 
-        print("Give number in wavelength list corresponding to pix: %.2f" % centroid_fit)
+        print("Give the number of the selected calibration lines in the wavelength list:" % centroid_fit)
         num_wl_ref = int(input(" number (-1 to skip): "))
         # Then here you can add a table look-up from a linelist...
         if num_wl_ref != -1: pix_wl_table.append([centroid_fit, wavelength[num_wl_ref-1]])
 
     else:
         print("End input?")
-        answer = input(" [Y/N] : ")
-        if answer.lower() in ['yes', 'y', '']: get_new_line = False
+        answer = input("End input [Y/N]?: ")
+        if answer.lower() in ['yes', 'y', '']: 
+             get_new_line = False 
+             plt.close("all")
 
 plt.show()
 
+
 # Print to file
+pix_wl_table = np.array(pix_wl_table)
 print(" Pixel to wavelength reference table :")
-df = pd.DataFrame(pix_wl_table,dtype='float32')
+df = pd.DataFrame(pix_wl_table[pix_wl_table[:,1].argsort()],dtype='float32')
 print(df)
 df.to_csv('database/idarc.txt', header=None, index=None, sep=' ')
 

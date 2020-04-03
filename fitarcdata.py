@@ -11,18 +11,11 @@ try:
     pixnumber = data[:,0]
     wavelength = data[:,1]
 except IOError:
-    print("File not accessible")
+    print("Output from identify.py is not accessible in the database")
 
-fig = plt.figure()
-ax = fig.add_subplot(111)
-
-ID_init = dict(peak=pixnumber,
+ID_init = dict(pixel_gauss=pixnumber,
                wavelength=wavelength)
-
 ID_init = Table(ID_init)
-
-peak_gauss = ID_init['peak']
-ID_init["pixel_gauss"] = peak_gauss
 
 if FITTING_MODEL_ID.lower() == 'chebyshev':
     coeff_ID, fitfull = chebfit(ID_init['pixel_gauss'], 

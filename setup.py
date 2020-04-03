@@ -5,9 +5,6 @@ from numpy.polynomial.chebyshev import chebfit, chebval
 
 import os as os
 
-# %matplotlib notebook 
-# comment above out when you copy this code to your spyder, etc.
-
 from matplotlib import pyplot as plt
 from matplotlib import gridspec, rcParams, rc
 from matplotlib.widgets import Cursor
@@ -22,23 +19,10 @@ from photutils.aperture import RectangularAperture, aperture_photometry
 
 from skimage.feature import peak_local_max
 from scipy.optimize import curve_fit
+from scipy.interpolate import interp1d
+
 import pandas as pd
 
-#def disable_mplkeymaps():
-#    rc('keymap', 
-#       fullscreen='',
-#       home='',
-#       back='',
-#       forward='',
-#       pan='',
-#       zoom='',
-#       save='',
-#       quit='q',
-#       grid='',
-#       yscale='',
-#       xscale='',
-#       all_axes=''
-#       )
 FONTSIZE = 12 # Change it on your computer if you wish.
 rcParams.update({'font.size': FONTSIZE})
 
@@ -46,7 +30,6 @@ fitter = LevMarLSQFitter()
 
 def gaussian(x, mu, sig, amp, bg):
     return bg + amp*np.exp(-0.5*(x-mu)**2/sig**2)
-
 
 #%%
 DATAPATH = Path('./')
@@ -58,6 +41,8 @@ if not os.path.exists(newpath):
 
 DISPAXIS = 1  # 1 = line = python_axis_1 // 2 = column = python_axis_0
 COMPIMAGE = DATAPATH/'arcsub.fits' # Change directory if needed!
+COMPSTDIMAGE = DATAPATH/'arcsub_std.fits' # Change directory if needed!
+STDIMAGE  = DATAPATH/'std.fits'
 OBJIMAGE  = DATAPATH/'spec1.fits'
 LINE_FITTER = LevMarLSQFitter()
 
@@ -82,7 +67,7 @@ FWHM_AP = 10
 STEP_AP = 10  # Recentering step size in pixels (dispersion direction)
 ## parameters for sky fitting
 FITTING_MODEL_APSKY = 'Chebyshev'
-ORDER_APSKY = 3
+ORDER_APSKY = 2
 SIGMA_APSKY = 3
 ITERS_APSKY = 5
 ## parameters for aperture tracing
@@ -92,6 +77,10 @@ SIGMA_APTRACE = 3
 ITERS_APTRACE = 5 
 # The fitting is done by SIGMA_APTRACE-sigma ITERS_APTRACE-iters clipped on the
 # residual of data. 
+
+# Parameters for SENSFUNCTION
+FITTING_MODEL_SF = 'Chebyshev'
+ORDER_SF = 9 
 
 #%%
 lamphdu = fits.open(COMPIMAGE)
@@ -108,7 +97,8 @@ if DISPAXIS == 2:
 elif DISPAXIS != 1:
     raise ValueError('DISPAXIS must be 1 or 2 (it is now {:d})'.format(DISPAXIS))
 
-EXPTIME = objhdu[0].header['EXPTIME']
+OBJEXPTIME = objhdu[0].header['EXPTIME']
+OBJAIRMASS = objhdu[0].header['AIRMASS']
 OBJNAME = objhdu[0].header['OBJECT']
 # Now python axis 0 (Y-direction) is the spatial axis 
 # and 1 (X-direciton) is the wavelength (dispersion) axis.

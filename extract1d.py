@@ -6,7 +6,7 @@ exec(open("setup.py").read())
 # =============================================================================
 # For REIDENTIFY, I used astropy.modeling.models.Chebyshev2D
 
-# Read idacr as astropy table
+# Read idarc 
 try:
     data = np.loadtxt('database/idarc.txt')
     pixnumber = data[:,0]
@@ -414,7 +414,7 @@ _.writeto(DATAPATH/(OBJIMAGE.stem+".skysub.fits"), overwrite=True)
 pos = np.array([x_ap, y_ap]).T
 aps = RectangularAperture(positions=pos, w=1, h=apheight, theta=0)
 phot = aperture_photometry(data_skysub, aps, method='subpixel', subpixels=30)
-ap_summed = phot['aperture_sum'] / EXPTIME
+ap_summed = phot['aperture_sum'] / OBJEXPTIME
 
 fig, axs = plt.subplots(2, 1, figsize=(10, 6), sharex=False, sharey=False, gridspec_kw=None)
 axs[0].imshow(objimage, vmin=3000, vmax=6000, origin='lower')
@@ -469,11 +469,11 @@ for i in range(N_WAVELEN):
     ap_summed.append(np.sum(obj_i)+l_pix_val+u_pix_val)
 #    print(lower, upper, ap_summed[i])
 
-ap_summed = np.array(ap_summed) / EXPTIME
+ap_summed = np.array(ap_summed) / OBJEXPTIME
 
 fig = plt.figure(figsize=(10,5))
 plt.xlim(3600,9300)
-plt.ylim(0,12.5)
+plt.ylim(0,np.amax(ap_summed)*1.2)
 plt.xlabel('lambda i Å')
 plt.ylabel('Flux')
 
@@ -487,6 +487,6 @@ plt.show()
 
 #Write spectrum to a file
 df_frame = {'wave':ap_wavelen, 'flux':ap_summed}
-df = pd.DataFrame(df_frame,dtype='float64')
-df.to_csv('spec1_1dw.txt', header=None, index=None, sep=' ')
+df = pd.DataFrame(df_frame,dtype='float32')
+df.to_csv('spec_1dw.dat', header=None, index=None, sep=' ')
 
