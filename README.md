@@ -41,7 +41,7 @@ The script setup.py defines all the packages and gobal parameters. It is run by 
 3) transform.py: 2d checychef polynomium to the pixel to wavelength relation. Makes rectified 2d-spectrum as output.
 
 
-4) extract1d.py: extraction of the wavelength calibrated 1d spectrum.
+4) extract_trans.py: extraction of the wavelength calibrated 1d spectrum.
 
 
 5) standard.py and sensfunction.py: generation of the sensitivity function for flux calibration.
