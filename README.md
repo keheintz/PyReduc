@@ -38,19 +38,25 @@ The script setup.py defines all the packages and gobal parameters. It is run by 
 2) fitarcdata.py: fit a checychef polynomium to the pixel to wavelength relation. 
 
 
-3) extract1d.py: 2d wavelength calibration and extraction of the wavelength calibrated 1d spectrum.
+3) transform.py: 2d checychef polynomium to the pixel to wavelength relation. Makes rectified 2d-spectrum as output.
 
 
-4) standard.py and sensfunction.py (for generation of the sensitivity function for flux calibration).
+4) extract1d.py: extraction of the wavelength calibrated 1d spectrum.
+
+
+5) standard.py and sensfunction.py: generation of the sensitivity function for flux calibration.
+
+
+6) calibrate.py: use the output sensitivity function to calibrate the science spectrum
 
 
 Missing (obviously a lot):
 1) Ideally, the identify.py and fitarcdata.py should be combined such that is possible to iteratively add and delete lines from the idarc list, fit the lines, go back to add/remove more lines, etc.
 
-2) sensfunction.py needs to be improved to allow deletion of points.
+2) sensfunction.py needs to be improved to allow deletion of points during the fitting.
 
-3) the equivalent of 'transform' in IRAF that produces a rectified 2d spectrum. 
+3) implementation of optimal extraction (ala Keith Horne).
 
-4) implementation of optimal extraction (ala Keith Horne).
+4) implementation of output noise-spectrum.
 
-5) implementation of output noise-spectrum.
+5) testing, testing, testing, debugging, debugging, debugging.
