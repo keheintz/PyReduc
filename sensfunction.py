@@ -24,6 +24,7 @@ bandwidth = datastd[:,2]
 stdcounts = datastd[:,3]
 
 #Read the atmospheric extinction data for La Palma
+#This assumes that the extinction files is on a finer grid than the flux file.
 try:
     dataext = np.loadtxt('database/lapalma.dat')
 except IOError:

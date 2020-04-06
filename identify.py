@@ -1,3 +1,7 @@
+import plotly.graph_objects as go
+import plotly.io as pio
+from IPython.display import Image
+
 #Run the setup script
 exec(open("setup.py").read())
 
@@ -36,7 +40,14 @@ wavelength = np.array(wavelength)
 
 #Print numbered list of reference wavelengths
 #Ideally I would like to print this out in a separate scroll-able window
-for n in range(0,len(wavelength)): print(n+1,wavelength[n],wavelengthtable[n,2])
+print()
+print('Number', 'Wavelength', 'ID')
+print('====================')
+for n in range(0,len(wavelength)): print(n+1,'    ',wavelength[n],'  ',wavelengthtable[n,2])
+#t = QTable([np.array(wavelengthtable[:,0]),np.array(wavelengthtable[:,1]),np.array(wavelengthtable[:,2])],
+#             names=('Number', 'Wavelength [Å]', 'ID'),
+#             meta={'name': 'first table'})
+
 
 #Cut out the region of the arc-file to fit to (defined in setup.py)
 lowercut_ID = N_SPATIAL//2 - NSUM_ID//2
@@ -47,14 +58,14 @@ identify_1 = np.median(lampimage[lowercut_ID:uppercut_ID, :], axis=0)
 max_intens = np.max(identify_1)
 fig = plt.figure()
 ax = fig.add_subplot(111)
-title_str = r'Arc line plot'
+title_str = r'First zoom, then hit any key and select with right-click on the mouse'
 x_identify = np.arange(0, len(identify_1))
 ax.plot(x_identify, identify_1, lw=1)
 ax.grid(ls=':')
 ax.set_xlabel('Pixel number')
 ax.set_ylabel('Pixel value sum')
 ax.set_xlim(0,len(identify_1))
-ax.set_title(title_str.format(MINAMP_PK, MINSEP_PK))
+ax.set_title(title_str.format(MINAMP_PK, MINSEP_PK), fontsize=10)
 
 #If idarc already exists the overplot existing lines
 if os.path.isfile('database/idarc.txt'):

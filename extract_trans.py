@@ -29,7 +29,7 @@ x_apall = np.arange(0, len(apall_1))
 
 fig = plt.figure()
 ax = fig.add_subplot(111)
-title_str = r'Peak ($A \geq {:.2f} A_\mathrm{{max}}$, $\Delta x \geq {:.0f}$)'
+title_str = r'Define sky and object positions'
 ax.plot(x_apall, apall_1, lw=1)
 
 ax.grid(ls=':')
@@ -250,6 +250,7 @@ ap_sky_offset = ap_sky - ap_init
 
 ap_summed  = []
 data_skysub = []
+data_variance = []
 
 for i in range(N_WAVELEN):
     cut_i = objimage[:, i].copy()
@@ -266,24 +267,30 @@ for i in range(N_WAVELEN):
                     deg=ORDER_APSKY)
 
     data_skysub.append(cut_i - chebval(np.arange(cut_i.shape[0]), coeff))
+    data_variance.append((np.abs(cut_i)/GAIN+(RON**2)/GAIN))
 
 data_skysub = np.array(data_skysub).T
+data_variance = np.array(data_variance).T
 hdr.add_history(f"Sky subtracted using sky offset = {ap_sky_offset}, "
                 + f"{SIGMA_APSKY}-sigma {ITERS_APSKY}-iter clipping "
                 + f"to fit order {ORDER_APSKY} Chebyshev")
 _ = fits.PrimaryHDU(data=data_skysub, header=hdr)
+_ = fits.PrimaryHDU(data=data_variance, header=hdr)
 _.data = _.data.astype('float32')
 _.writeto(DATAPATH/(OBJIMAGE.stem+".skysub.fits"), overwrite=True)
+_.writeto(DATAPATH/(OBJIMAGE.stem+".variance.fits"), overwrite=True)
 
 
 pos = np.array([x_ap, y_ap]).T
 aps = RectangularAperture(positions=pos, w=1, h=apheight, theta=0)
 phot = aperture_photometry(data_skysub, aps, method='subpixel', subpixels=30)
 ap_summed = phot['aperture_sum'] / OBJEXPTIME
+var = aperture_photometry(data_variance, aps, method='subpixel', subpixels=30)
+ap_variance = var['aperture_sum'] / OBJEXPTIME**2
 
 fig, axs = plt.subplots(2, 1, figsize=(10, 6), sharex=False, sharey=False, gridspec_kw=None)
-axs[0].imshow(objimage, vmin=3000, vmax=6000, origin='lower')
-axs[1].imshow(data_skysub, vmin=0, vmax=200, origin='lower')
+axs[0].imshow(objimage, vmin=-30, vmax=1000, origin='lower')
+axs[1].imshow(data_skysub, vmin=-30, vmax=100, origin='lower')
 axs[0].set(title="Before sky subtraction")
 axs[1].set(title="Sky subtracted")
 
@@ -298,47 +305,10 @@ plt.tight_layout()
 plt.show()
 
 
-ap_summed  = []
-
-for i in range(N_WAVELEN):
-    cut_i = objimage[:, i]
-    ap_sky_i = int(y_ap[i]) + ap_sky_offset
-
-    lower = y_ap[i] - apsum_sigma_lower * ap_sigma
-    upper = y_ap[i] + apsum_sigma_upper * ap_sigma + 1
-    # + 1 required since python regards, e.g., list[1:3] = list[1], list[2] (NOT list[3] included).
-
-    x_obj_lower = int(np.around(y_ap[i] - apsum_sigma_lower * ap_sigma))
-    x_obj_upper = int(np.around(y_ap[i] + apsum_sigma_upper * ap_sigma)) 
-    x_obj = np.arange(x_obj_lower, x_obj_upper)
-    obj_i = cut_i[x_obj_lower:x_obj_upper]
-
-    l_pix_w = x_obj_lower - lower - 0.5
-    u_pix_w = upper - x_obj_upper - 0.5
-
-    x_sky = np.hstack( (np.arange(ap_sky_i[0], ap_sky_i[1]),
-                        np.arange(ap_sky_i[2], ap_sky_i[3])))
-    sky_val = np.hstack( (cut_i[ap_sky_i[0]:ap_sky_i[1]],
-                          cut_i[ap_sky_i[2]:ap_sky_i[3]]))
-    clip_mask = sigma_clip(sky_val, sigma=SIGMA_APSKY, maxiters=ITERS_APSKY).mask
-
-    coeff = chebfit(x_sky[~clip_mask],
-                    sky_val[~clip_mask],
-                    deg=ORDER_APSKY)
-
-    obj_i -= chebval(x_obj, coeff)
-
-    l_pix_val = obj_i[0] * l_pix_w   # negative value (hopefully)
-    u_pix_val = obj_i[-1] * u_pix_w  # negative value (hopefully)
-
-    ap_summed.append(np.sum(obj_i)+l_pix_val+u_pix_val)
-#    print(lower, upper, ap_summed[i])
-
-ap_summed = np.array(ap_summed) / OBJEXPTIME
-
 fig = plt.figure(figsize=(10,5))
 plt.xlim(3600,9300)
-plt.ylim(0,np.amax(ap_summed)*1.2)
+ii = (ap_wavelen > 3600) & (ap_wavelen < 9300)
+plt.ylim(0,np.amax(ap_summed[ii])*1.2)
 plt.xlabel('lambda i Å')
 plt.ylabel('Flux')
 
@@ -347,11 +317,13 @@ plt.ylabel('Flux [arbitrary units]')
 
 plt.plot(ap_wavelen, ap_summed, lw = 1,
          alpha=0.5, label='1d extracted spectrum')
+plt.plot(ap_wavelen, np.sqrt(ap_variance), lw=1, color='r')
 plt.legend()
 plt.show()
 
+
 #Write spectrum to a file
-df_frame = {'wave':ap_wavelen, 'flux':ap_summed}
+df_frame = {'wave':ap_wavelen, 'flux':ap_summed, 'noise':np.sqrt(ap_variance)}
 df = pd.DataFrame(df_frame,dtype='float32')
 df.to_csv('spec1_1dw.dat', header=None, index=None, sep=' ')
 

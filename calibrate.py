@@ -17,12 +17,12 @@ except IOError:
 
 #Read the spectrum to be calibrated
 try:
-    #data = np.loadtxt('std_1dw.dat')
     data = np.loadtxt('spec1_1dw.dat')
 except IOError:
     print("Missing input spectrum to calibrate?")
 wavelength = data[:,0]
 objcounts = data[:,1] 
+objnoise = data[:,2] 
 airmass = OBJAIRMASS
 exptime = OBJEXPTIME
 print(airmass,exptime)
@@ -43,6 +43,7 @@ ID_init = Table(ID_init)
 
 c = chebval(ID_init['wavelength'], coeff_ID)
 flux = objcounts / 10**((chebval(ID_init['wavelength'], coeff_ID) - airmass*extinterp1d)/2.5) 
+noise = objnoise / 10**((chebval(ID_init['wavelength'], coeff_ID) - airmass*extinterp1d)/2.5) 
 
 fig = plt.figure(figsize=(10,5))
 plt.xlim(3600,9300)
@@ -54,11 +55,12 @@ plt.xlabel('Observed wavelength [Å]')
 plt.ylabel('Flux [erg/s/cm2/Å]')
 plt.plot(wavelength, flux, lw = 1,
          alpha=1.0, label='flux-calibrated 1d spectrum')
+plt.plot(wavelength, noise, lw = 1, color='r', label='1-sigma noise spectrum')
 plt.legend()
 plt.show()
 
 #Write spectrum to a file
-df_frame = {'wave':wavelength, 'flux':flux}
+df_frame = {'wave':wavelength, 'flux':flux,  'noise':noise}
 df = pd.DataFrame(df_frame,dtype='float32')
 df.to_csv('flux_spec1.dat', header=None, index=None, sep=' ')
 
