@@ -59,4 +59,6 @@ Missing (obviously a lot):
 
 4) implementation of output noise-spectrum.
 
-5) testing, testing, testing, debugging, debugging, debugging.
+5) currently, the 1d extracted files are ascii. This should be changed to fits format.
+
+6) testing, testing, testing, debugging, debugging, debugging.
