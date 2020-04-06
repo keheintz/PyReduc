@@ -57,8 +57,6 @@ Missing (obviously a lot):
 
 3) implementation of optimal extraction (ala Keith Horne).
 
-4) implementation of output noise-spectrum.
+4) currently, the 1d extracted files are ascii. This should be changed to fits format.
 
-5) currently, the 1d extracted files are ascii. This should be changed to fits format.
-
-6) testing, testing, testing, debugging, debugging, debugging.
+5) testing, testing, testing, debugging, debugging, debugging.
