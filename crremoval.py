@@ -1,17 +1,14 @@
-# import cosmics
-import astroscrappy
-import glob
-from astropy.io import fits
-import os
-import matplotlib.pyplot as pl
+#Run the setup script
+exec(open("setup.py").read())
 
-# Path to folder with science files
-object_name = "testdata"
+# This is a python program to run cosmic ray removal on science frames
 
-for nn in glob.glob(object_name+"/*cr*"):
+# Path to folder with science frames
+object_name = "rawdata/rawscience"
+for nn in glob.glob(object_name+"/AL*cr*"):
     os.remove(nn)
 
-files = glob.glob(object_name+"/*z.fits")
+files = glob.glob(object_name+"/AL*z.fits")
 for n in files:
     try:
         fitsfile = fits.open(str(n))
@@ -25,8 +22,8 @@ for n in files:
     if fitsfile[0].header['IMAGECAT'] == 'SCIENCE':
         print('Removing cosmics from file: '+n+'...')
     
-        gain = fitsfile[0].header['GAIN']
-        ron = fitsfile[0].header['RDNOISE']
+        gain = 2.5 # LOOK UP fitsfile[0].header['GAIN']
+        ron = 0.5 # LOOK UP fitsfile[0].header['RDNOISE']
         frac = 0.01
         objlim = 15
         sigclip = 5
