@@ -41,7 +41,7 @@ The script setup.py defines all the packages and gobal parameters. It is run by 
 3) transform.py: 2d checychef polynomium to the pixel to wavelength relation. Makes rectified 2d-spectrum as output.
 
 
-4) extract_trans.py: extraction of the wavelength calibrated 1d spectrum wit hthe transformed 2d spectrum as input. This produces as output the 1d science file and a 1-sigma noise spectrum.
+4) extract_1d.py: extraction of the wavelength calibrated 1d spectrum. This produces as output the 1d science file and a 1-sigma noise spectrum. There is both an optimally extracted version and a sum over an aperture.
 
 
 5) standard.py and sensfunction.py: generation of the sensitivity function for flux calibration.
@@ -55,8 +55,6 @@ Missing (obviously a lot):
 
 2) sensfunction.py needs to be improved to allow deletion of points during the fitting.
 
-3) implementation of optimal extraction (ala Keith Horne).
+3) currently, the 1d extracted files are ascii. This should be changed to fits format.
 
-4) currently, the 1d extracted files are ascii. This should be changed to fits format.
-
-5) testing, testing, testing, debugging, debugging, debugging.
+4) testing, testing, testing, debugging, debugging, debugging.
