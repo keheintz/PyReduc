@@ -4,8 +4,8 @@ exec(open("setup.py").read())
 # This is a python program to run cosmic ray removal on science frames
 
 # Path to folder with science frames
-sciencefolder = "rawscience/"
-for nn in glob.glob(sciencefolder+"crrAL*"):
+sciencefolder = "rawdata/rawscience/"
+for nn in glob.glob(sciencefolder+"*_crr.fits"):
     os.remove(nn)
 
 files = glob.glob(sciencefolder+"AL*.fits")
