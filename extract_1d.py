@@ -1,21 +1,156 @@
 #Run the setup script
 exec(open("setup.py").read())
 
+# =============================================================================
+# reidentify
+# =============================================================================
+# For REIDENTIFY, I used astropy.modeling.models.Chebyshev2D
+
 # Read idarc 
 try:
     data = np.loadtxt('database/idarc.txt')
     pixnumber = data[:,0]
     wavelength = data[:,1]
 except IOError:
-    print("idacrc not accessible in the database")
+    print("File not accessible")
 
-#Read rectified spectrum
-try:
-    objhdutrans = fits.open(OBJIMAGE.stem+'.trans.fits')  
-    objimage  = objhdutrans[0].data
-    hdr = objhdutrans[0].header
-except IOError:
-    print("Rectified spectrum not found.")
+
+ID_init = dict(peak=pixnumber,
+               wavelength=wavelength)
+
+ID_init = Table(ID_init)
+
+peak_gauss = ID_init['peak']
+ID_init["pixel_gauss"] = peak_gauss
+
+
+line_REID = np.zeros((len(ID_init), N_REID-1))
+spatialcoord = np.arange(0, (N_REID - 1) * STEP_REID, STEP_REID) + STEP_REID / 2
+
+print('Reidentify each section by Chebyshev (order {:d})'.format(ORDER_ID))
+print('section      |  found  |  RMS')
+
+for i in range(0, N_REID-1):
+    lower_cut, upper_cut = i*STEP_REID, (i+1)*STEP_REID
+    reidentify_i = np.sum(lampimage[lower_cut:upper_cut, :], 
+                          axis=0)
+    peak_gauss_REID = []
+    
+    for peak_pix_init in ID_init['pixel_gauss']:
+        search_min = int(np.around(peak_pix_init - TOL_REID))
+        search_max = int(np.around(peak_pix_init + TOL_REID))
+        cropped = reidentify_i[search_min:search_max]
+        x_cropped = np.arange(len(cropped)) + search_min
+        
+        #TODO: put something like "lost_factor" to multiply to FWHM_ID in the bounds.
+        A_init = np.max(cropped)
+        mean_init = peak_pix_init
+        stddev_init = FWHM_ID * gaussian_fwhm_to_sigma
+        g_init = Gaussian1D(amplitude=A_init, mean=mean_init, stddev=stddev_init,
+                            bounds={'amplitude':(0, 2*np.max(cropped)) ,
+                                    'stddev':(0, TOL_REID)})
+        g_fit = fitter(g_init, x_cropped, cropped)    
+        fit_center = g_fit.mean.value
+        if abs(fit_center - peak_pix_init) > TOL_REID:
+            peak_gauss_REID.append(np.nan)
+            continue
+        peak_gauss_REID.append(fit_center)
+
+    peak_gauss_REID = np.array(peak_gauss_REID)
+    nonan_REID = np.isfinite(peak_gauss_REID)
+    line_REID[:, i] = peak_gauss_REID
+    peak_gauss_REID_nonan = peak_gauss_REID[nonan_REID]
+    n_tot = len(peak_gauss_REID)
+    n_found = np.count_nonzero(nonan_REID)
+    
+    if FITTING_MODEL_ID.lower() == 'chebyshev':
+        coeff_REID1D, fitfull = chebfit(peak_gauss_REID_nonan,
+                                        ID_init['wavelength'][nonan_REID], 
+                                        deg=ORDER_WAVELEN_REID,
+                                        full=True)
+        fitRMS = np.sqrt(fitfull[0][0]/n_found)
+    
+    else:
+        raise ValueError('Function {:s} is not implemented.'.format(FITTING_MODEL_REID))
+
+    print('[{:04d}:{:04d}]\t{:d}/{:d}\t{:.3f}'.format(lower_cut, upper_cut,
+                                                      n_found, n_tot, fitRMS))
+    
+    points = np.vstack((line_REID.flatten(),
+                    np.tile(spatialcoord, len(line_REID))))
+points = points.T # list of ()
+nanmask = ( np.isnan(points[:,0]) | np.isnan(points[:,1]) )
+points = points[~nanmask]
+values = np.repeat(ID_init['wavelength'], N_REID - 1)
+values = np.array(values.tolist())
+values = values[~nanmask]
+errors = np.ones_like(values)
+
+if FITTING_MODEL_REID.lower() == 'chebyshev':
+    coeff_init = Chebyshev2D(x_degree=ORDER_WAVELEN_REID, y_degree=ORDER_SPATIAL_REID)
+    fit2D_REID = fitter(coeff_init, points[:, 0], points[:, 1], values)
+    ww, ss = np.mgrid[:N_WAVELEN, :N_SPATIAL]
+else:
+    raise ValueError('Function {:s} is not implemented.'.format(FITTING_MODEL_REID))
+
+fig = plt.figure(figsize=(10, 6))
+gs = gridspec.GridSpec(3, 3)
+ax1 = plt.subplot(gs[:2, :2])
+ax2 = plt.subplot(gs[2, :2])
+ax3 = plt.subplot(gs[:2, 2])
+#plt.setp(ax2.get_xticklabels(), visible=False)
+#plt.setp(ax3.get_yticklabels(), visible=False)
+
+title_str = ('Reidentify and Wavelength Map\n'
+             + 'func=Chebyshev, order (wavelength, dispersion) = ({:d}, {:d})')
+plt.suptitle(title_str.format(ORDER_WAVELEN_REID, ORDER_SPATIAL_REID))
+
+interp_min = line_REID[~np.isnan(line_REID)].min()
+interp_max = line_REID[~np.isnan(line_REID)].max()
+
+ax1.imshow(fit2D_REID(ww, ss).T, origin='lower')
+ax1.axvline(interp_max, color='r', lw=1)
+ax1.axvline(interp_min, color='r', lw=1)
+
+ax1.plot(points[:, 0], points[:, 1], ls='', marker='+', color='r',
+         alpha=0.8, ms=10)
+
+
+for i in (1, 2, 3):
+    vcut = N_WAVELEN * i/4
+    hcut = N_SPATIAL * i/4
+    vcutax  = np.arange(0, N_SPATIAL, STEP_REID) + STEP_REID/2
+    hcutax  = np.arange(0, N_WAVELEN, 1)
+    vcutrep = np.repeat(vcut, len(vcutax))
+    hcutrep = np.repeat(hcut, len(hcutax))
+    
+    ax1.axvline(x=vcut, ls=':', color='k')   
+    ax1.axhline(y=hcut, ls=':', color='k')
+    
+    ax2.plot(hcutax, fit2D_REID(hcutax, hcutrep), lw=1, 
+             label="hcut {:d}".format(int(hcut)))
+
+    vcut_profile = fit2D_REID(vcutrep, vcutax)
+    vcut_normalize = vcut_profile - np.median(vcut_profile)
+    ax3.plot(vcut_normalize, vcutax, lw=1,
+             label="vcut {:d}".format(int(vcut)))
+
+ax1.set_ylabel('Spatial direction')
+ax2.grid(ls=':')
+ax2.legend()
+ax2.set_xlabel('Dispersion direction')
+ax2.set_ylabel('Wavelength\n(horizontal cut)')
+
+ax3.axvline(0, ls=':', color='k')
+ax3.grid(ls=':', which='both')
+ax3.set_xlabel('Wavelength change (vertical cut)')
+ax3.legend()
+
+ax1.set_ylim(0, N_SPATIAL)
+ax1.set_xlim(0, N_WAVELEN)
+ax2.set_xlim(0, N_WAVELEN)
+ax3.set_ylim(0, N_SPATIAL)
+plt.show()
 
 # =============================================================================
 # apall (1): Plot a cut
@@ -27,9 +162,9 @@ max_intens = np.max(apall_1)
 
 x_apall = np.arange(0, len(apall_1))
 
-fig = plt.figure()
+fig = plt.figure(figsize=(10, 7))
 ax = fig.add_subplot(111)
-title_str = r'Define sky and object positions'
+title_str = r'Select Sky_left_1, Sky_left_2, Object, Sky_right_1, Sky_rigth_2'
 ax.plot(x_apall, apall_1, lw=1)
 
 ax.grid(ls=':')
@@ -181,6 +316,7 @@ for i in range(N_AP - 1):
 
 aptrace = np.array(aptrace)
 aptrace_fwhm = np.array(aptrace_fwhm)
+
 #coeff_apsky = np.array(coeff_apsky)
 #aptrace_apsum = np.array(aptrace_apsum)
 
@@ -190,10 +326,17 @@ aptrace_fwhm = np.array(aptrace_fwhm)
 # =============================================================================
 x_aptrace = np.arange(N_AP-1) * STEP_AP
 
+#position
 coeff_aptrace = chebfit(x_aptrace, aptrace, deg=ORDER_APTRACE)
 resid_mask = sigma_clip(aptrace - chebval(x_aptrace, coeff_aptrace), 
                         sigma=SIGMA_APTRACE, maxiters=ITERS_APTRACE).mask
 
+#width
+coeff_aptrace_fwhm = chebfit(x_aptrace, aptrace_fwhm, deg=ORDER_APTRACE)
+resid_mask_fwhm = sigma_clip(aptrace_fwhm - chebval(x_aptrace, coeff_aptrace_fwhm), 
+                        sigma=SIGMA_APTRACE, maxiters=ITERS_APTRACE).mask
+
+#position
 x_aptrace_fin = x_aptrace[~resid_mask]
 aptrace_fin = aptrace[~resid_mask]
 coeff_aptrace_fin = chebfit(x_aptrace_fin, aptrace_fin, deg=ORDER_APTRACE)
@@ -201,10 +344,21 @@ fit_aptrace_fin   = chebval(x_aptrace_fin, coeff_aptrace_fin)
 resid_aptrace_fin = aptrace_fin - fit_aptrace_fin
 del_aptrace = ~np.in1d(x_aptrace, x_aptrace_fin) # deleted points
 
-fig = plt.figure(figsize=(10,8))
-gs = gridspec.GridSpec(3, 1)
-ax2 = plt.subplot(gs[2])
-ax1 = plt.subplot(gs[0:2], sharex=ax2)
+#width
+x_aptrace_fwhm_fin = x_aptrace[~resid_mask_fwhm]
+aptrace_fwhm_fin = aptrace_fwhm[~resid_mask_fwhm]
+coeff_aptrace_fwhm_fin = chebfit(x_aptrace_fwhm_fin, aptrace_fwhm_fin, deg=ORDER_APTRACE)
+fit_aptrace_fwhm_fin   = chebval(x_aptrace_fwhm_fin, coeff_aptrace_fwhm_fin)
+resid_aptrace_fwhm_fin = aptrace_fwhm_fin - fit_aptrace_fwhm_fin
+del_aptrace_fwhm = ~np.in1d(x_aptrace, x_aptrace_fwhm_fin) # deleted points
+
+
+#Plot the center of the trace and the fwhm of the trace and the fits to these
+fig = plt.figure(figsize=(10,10))
+gs = gridspec.GridSpec(4, 1)
+ax2 = plt.subplot(gs[3])
+ax1 = plt.subplot(gs[1:3], sharex=ax2)
+ax3 = plt.subplot(gs[0], sharex=ax2)
 
 title_str = ('Aperture Trace Fit ({:s} order {:d})\n'
             + 'Residuials {:.1f}-sigma, {:d}-iters clipped')
@@ -216,17 +370,20 @@ ax1.plot(x_aptrace_fin, fit_aptrace_fin, ls='--',
 ax1.plot(x_aptrace[del_aptrace], aptrace[del_aptrace], ls='', marker='x', ms=10)
 ax1.legend()
 ax2.plot(x_aptrace_fin, resid_aptrace_fin, ls='', marker='+')
-#ax2.plot(x_aptrace, aptrace - chebval(x_aptrace, coeff_aptrace_fin), 
-#         ls='', marker='+')
 ax2.axhline(+np.std(resid_aptrace_fin, ddof=1), ls=':', color='k')
 ax2.axhline(-np.std(resid_aptrace_fin, ddof=1), ls=':', color='k', 
             label='residual std')
+ax3.plot(x_aptrace, aptrace_fwhm, ls='', marker='+', ms=10)
+ax3.plot(x_aptrace_fwhm_fin, fit_aptrace_fwhm_fin, ls='--',
+         label="Aperture Width ({:d}/{:d} used)".format(len(aptrace_fwhm_fin), N_AP-1))
 
 ax1.set_ylabel('Found object position')
 ax2.set_ylabel('Residual (pixel)')
 ax2.set_xlabel('Dispersion axis (pixel)')
+ax3.set_ylabel('FWHM (pixel)')
 ax1.grid(ls=':')
 ax2.grid(ls=':')
+ax3.grid(ls=':')
 ax2.set_ylim(-.5, .5)
 ax2.legend()
 plt.show()
@@ -245,13 +402,14 @@ apheight = (apsum_sigma_lower + apsum_sigma_upper)*ap_sigma
 
 x_ap = np.arange(N_WAVELEN)
 y_ap = chebval(x_ap, coeff_aptrace_fin)
-ap_wavelen = hdr['CRVAL1']+x_ap*hdr['CD1_1']
+ap_wavelen = fit2D_REID(x_ap, y_ap)
 ap_sky_offset = ap_sky - ap_init
 
 ap_summed  = []
 data_skysub = []
 data_variance = []
 
+#subtract sky
 for i in range(N_WAVELEN):
     cut_i = objimage[:, i].copy()
     ap_sky_i = int(y_ap[i]) + ap_sky_offset
@@ -269,6 +427,8 @@ for i in range(N_WAVELEN):
     data_skysub.append(cut_i - chebval(np.arange(cut_i.shape[0]), coeff))
     data_variance.append((np.abs(cut_i)/GAIN+(RON**2)/GAIN))
 
+#write out the sky-subtracted and the variance images to fits files
+hdr = objhdu[0].header
 data_skysub = np.array(data_skysub).T
 data_variance = np.array(data_variance).T
 hdr.add_history(f"Sky subtracted using sky offset = {ap_sky_offset}, "
@@ -281,7 +441,10 @@ _ = fits.PrimaryHDU(data=data_variance, header=hdr)
 _.data = _.data.astype('float32')
 _.writeto(DATAPATH/(OBJIMAGE.stem+".variance.fits"), overwrite=True)
 
+#calculate the counts of the 1d-spectrum and its 1-sigma noise (sum in aperture)
+#also calculate the optimally extracted 1d-spectrum and its 1-sigma noise (Horne method)
 
+#first the sum in the aperture
 pos = np.array([x_ap, y_ap]).T
 aps = RectangularAperture(positions=pos, w=1, h=apheight, theta=0)
 phot = aperture_photometry(data_skysub, aps, method='subpixel', subpixels=30)
@@ -289,9 +452,24 @@ ap_summed = phot['aperture_sum'] / OBJEXPTIME
 var = aperture_photometry(data_variance, aps, method='subpixel', subpixels=30)
 ap_variance = var['aperture_sum'] / OBJEXPTIME**2
 
+#then the optimally extracted spectrum
+ap_optimal = np.array(range(0,N_WAVELEN))
+var_optimal = np.array(range(0,N_WAVELEN))
+NROWS = objhdu[0].header['NAXIS2']
+c = chebval(x_ap, coeff_aptrace_fin)
+s = chebval(x_ap, coeff_aptrace_fwhm_fin)/np.sqrt(8.*np.log(2.))
+y = np.array(range(0,NROWS))
+for n in range(N_WAVELEN):
+    weight = gaussian(y,c[n],s[n])
+    ap_optimal[n] = np.sum(data_skysub[:,n]*weight/data_variance[:,n]) / np.sum(weight**2/data_variance[:,n])
+    var_optimal[n] = np.sum(weight) / np.sum(weight**2/data_variance[:,n])
+    
+ap_optimal = ap_optimal/ OBJEXPTIME
+var_optimal = var_optimal/ OBJEXPTIME**2
+
 fig, axs = plt.subplots(2, 1, figsize=(10, 6), sharex=False, sharey=False, gridspec_kw=None)
-axs[0].imshow(objimage, vmin=-30, vmax=1000, origin='lower')
-axs[1].imshow(data_skysub, vmin=-30, vmax=100, origin='lower')
+axs[0].imshow(objimage, vmin=0, vmax=1000, origin='lower')
+axs[1].imshow(data_skysub, vmin=-50, vmax=200, origin='lower')
 axs[0].set(title="Before sky subtraction")
 axs[1].set(title="Sky subtracted")
 
@@ -302,6 +480,7 @@ for ax in [axs[0], axs[1]]:
     for offset in ap_sky_offset:
         ax.plot(x_ap, y_ap+offset, 'y-', lw=1)
     
+
 plt.tight_layout()
 plt.show()
 
@@ -318,13 +497,15 @@ plt.ylabel('Flux [arbitrary units]')
 
 plt.plot(ap_wavelen, ap_summed, lw = 1,
          alpha=0.5, label='1d extracted spectrum')
+plt.plot(ap_wavelen, ap_optimal, lw = 1,
+         alpha=0.5, label='1d optimal spectrum', color='y')
 plt.plot(ap_wavelen, np.sqrt(ap_variance), lw=1, color='r')
+plt.plot(ap_wavelen, np.sqrt(var_optimal), lw=1, color='y')
 plt.legend()
 plt.show()
 
-
 #Write spectrum to a file
-df_frame = {'wave':ap_wavelen, 'flux':ap_summed, 'noise':np.sqrt(ap_variance)}
+df_frame = {'wave':ap_wavelen, 'optflux':ap_optimal, 'optnoise':np.sqrt(var_optimal), 'flux':ap_summed, 'noise':np.sqrt(ap_variance)}
 df = pd.DataFrame(df_frame,dtype='float32')
 df.to_csv('spec1_1dw.dat', header=None, index=None, sep=' ')
 
