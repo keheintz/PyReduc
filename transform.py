@@ -166,10 +166,10 @@ for nrow in range(N_SPATIAL):
 data_trans = np.array(outimage)
 hdr = objhdu[0].header
 hdr.add_history(f"rectified using transform.py")
-del hdr['CD2_1']
-del hdr['CD1_2']
-del hdr['LTM1_2']
-del hdr['LTM2_2']
+#del hdr['CD2_1']
+#del hdr['CD1_2']
+#del hdr['LTM1_2']
+#del hdr['LTM2_2']
 hdr.set('CD1_1', dw[0], 'dispersion')
 hdr.set('CD2_2', 1., )
 hdr.set('CDELT1', dw[0], 'dispersion', after=181)
