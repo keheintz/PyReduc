@@ -6,10 +6,6 @@ exec(open("setup.py").read())
 # =============================================================================
 # For REIDENTIFY, I used astropy.modeling.models.Chebyshev2D
 
-#DEFINE here
-#GAIN = 0.16
-#RON = 4.3
-
 # Read idarc 
 try:
     data = np.loadtxt('database/idarc.txt')
@@ -410,8 +406,8 @@ ap_wavelen = fit2D_REID(x_ap, y_ap)
 ap_sky_offset = ap_sky - ap_init
 
 #Define limits of aperture for the APNUM1 keyword
-apmin = np.min(y_ap)+apheight 
-apmax = np.max(y_ap)-apheight 
+apmin = np.min(y_ap)-apheight 
+apmax = np.max(y_ap)+apheight 
 
 data_skysub = []
 data_sky = []
@@ -506,8 +502,9 @@ plt.show()
 
 ap_wavelen_start = ap_wavelen[0]
 ap_wavelen_end = ap_wavelen[N_WAVELEN-1]
-dw = (ap_wavelen_end-ap_wavelen_start)/(float(N_WAVELEN)-1)
-wavelength = ap_wavelen_start+range(0,N_WAVELEN)*dw
+dw = np.float32((ap_wavelen_end-ap_wavelen_start)/(float(N_WAVELEN)-1.))
+wavelength = np.float32(ap_wavelen_start+range(0,N_WAVELEN)*dw)
+print(N_WAVELEN,len(wavelength))
 
 #Interpolate onto the new grid
 f = interp1d(ap_wavelen,ap_optimal,fill_value="extrapolate", kind='cubic')
@@ -521,40 +518,47 @@ out4 = f(wavelength)
 
 #Now follow John Thorstensen, Dartmouth College (thanks!)
 #copy over the header from the original spectrum.
-rightnow = datetime.now().strftime("%a %Y-%m-%dT%H:%M:%S")
-hdr = objhdu[0].header
-hdr.add_history(f"extracted using extract_1d.py %s" % rightnow)
-hdr.set('CD1_1', dw, 'dispersion')
-hdr.set('CD1_2', 1., )
-hdr.set('CD2_2', 1., )
-hdr.set('CD3_3', 1., )
-hdr.set('CD1_2', 1., )
-hdr.set('LTM1_1', 1., )
-hdr.set('LTM2_2', 1., )
-hdr.set('LTM3_3', 1., )
-hdr.set('CDELT1', dw, 'dispersion', after=181)
-hdr.set('CRVAL1', wavelength[0], 'X at reference point', after=156)
-hdr.set('CD1_1', dw, 'dispersion')
-hdr.set('CDELT1', dw, 'dispersion', after=181)
-hdr.set('CTYPE1', 'LINEAR  ')
-hdr.set('CRVAL1', wavelength[0], 'X at reference point', after=156)
-hdr.set('CRPIX1', 1.)
-hdr.set('WAT0_001', 'system=equispec')
-hdr.set('WAT1_001', 'wtype=linear label=Wavelength units=angstroms')
-hdr.set('WAT2_001', 'wtype=linear')
-hdr.set('WAT3_001', 'wtype=linear')
-hdr.set('APNUM1', '1 1 %7.2f %7.2f' % (apmin, apmax))
-hdr.set('BANDID1', "Optimally extracted spectrum")
-hdr.set('BANDID2', "Straight sum of spectrum")
-hdr.set('BANDID3', "Background fit")
-hdr.set('BANDID4', "Sigma per pixel")
-
 # stack in the same array configuration as a multispec
-multispecdata = fake_multispec_data((out1, out2, out3, out4))
+multispecdata = fake_multispec_data((np.float32(out1), np.float32(out2), np.float32(out3), np.float32(out4)))
 hduout = fits.PrimaryHDU(multispecdata)
 hdrcopy = hdr.copy(strip = True)
 hduout.header.extend(hdrcopy, strip=True, update=True,
         update_first=False, useblanks=True, bottom=False)
+
+hduout.header['HISTORY'] = "From development of extract_1d.py"
+rightnow = datetime.now().strftime("%a %Y-%m-%dT%H:%M:%S")
+hduout.header['HISTORY'] = "Extracted %s" % (rightnow)
+hduout.header['EXTEND'] = False
+hduout.header['BUNIT'] = 'erg/cm2/s/A'
+hduout.header['CTYPE1'] = 'LINEAR  '
+hduout.header['CTYPE2'] = 'LINEAR  '
+hduout.header['CRVAL1'] = wavelength[0]
+hduout.header['CUNIT1'] = 'pixel   '
+hduout.header['CUNIT2'] = 'pixel   '
+hduout.header['CRPIX1'] = 1. 
+hduout.header['CCDSUM'] = '1 2     '
+hduout.header['WCSDIM'] = 3
+hduout.header['CD1_1'] = dw
+hduout.header['CD2_2'] = 1.
+hduout.header['LTM1_1'] = 1.
+hduout.header['LTM2_2'] = 1.
+hduout.header['WAT0_001'] = 'system=equispec'
+hduout.header['WAT1_001'] = 'wtype=linear label=Wavelength units=angstroms'
+hduout.header['WAT2_001'] = 'wtype=linear'
+hduout.header['DCLOG1'] = 'Transform'
+hduout.header['DC-FLAG'] = 0
+hduout.header['CTYPE3'] = 'LINEAR  '
+hduout.header['CD3_3'] = 1.
+hduout.header['LTM3_3'] = 1.
+hduout.header['WAT3_001'] = 'wtype=linear'
+hduout.header['EX-FLAG'] = 0
+hduout.header['CA-FLAG'] = 0
+hduout.header['BANDID1'] = "Optimally extracted spectrum"
+hduout.header['BANDID2'] = "Straight sum of spectrum"
+hduout.header['BANDID3'] = "Background fit"
+hduout.header['BANDID4'] = "Sigma per pixel."
+hduout.header['APNUM1'] = '1 1 %7.2f %7.2f' % (apmin, apmax)
+
 
 hduout.writeto(OBJIMAGE.stem+".ms_1d.fits", overwrite=True)
 print(" ")
@@ -564,7 +568,7 @@ print(" ")
 #Also write spectrum to an ascii-file
 df_frame = {'wave':wavelength, 'optflux':out1, 'sumflux':out2, 'sky':out3, 'opt_sigma':out4}
 df = pd.DataFrame(df_frame,dtype='float32')
-df.to_csv(OBJIMAGE.stem+'.ms_1d.dat', header=None, index=None, sep=' ')
+df.to_csv(OBJIMAGE.stem+'.ms_1dw.dat', header=None, index=None, sep=' ')
 print(" ")
 print("** Wrote output file '%s.ms_1d.dat' ." % OBJIMAGE.stem)
 print(" ")

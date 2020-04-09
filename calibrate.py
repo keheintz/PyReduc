@@ -76,7 +76,7 @@ hdr.add_history(f"Flux-calibrated with calibrate.py %s" % rightnow)
 hdr.set('BUNIT', 'erg/cm2/s/A')
 
 # stack in the same array configuration as a multispec
-multispecdata = fake_multispec_data((optflux, sumflux, skyflux, noiseflux))
+multispecdata = fake_multispec_data((np.float32(optflux), np.float32(sumflux), np.float32(skyflux), np.float32(noiseflux)))
 hduout = fits.PrimaryHDU(multispecdata)
 hdrcopy = hdr.copy(strip = True)
 hduout.header.extend(hdrcopy, strip=True, update=True,
