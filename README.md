@@ -55,6 +55,6 @@ Missing (obviously a lot):
 
 2) sensfunction.py needs to be improved to allow deletion of points during the fitting.
 
-3) currently, the 1d extracted files are ascii. This should be changed to fits format.
+3) testing, testing, testing, debugging, debugging, debugging.
 
-4) testing, testing, testing, debugging, debugging, debugging.
+4) add more flexibility and user-control.
