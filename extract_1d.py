@@ -405,8 +405,12 @@ y_ap = chebval(x_ap, coeff_aptrace_fin)
 ap_wavelen = fit2D_REID(x_ap, y_ap)
 ap_sky_offset = ap_sky - ap_init
 
-ap_summed  = []
+#Define limits of aperture for the APNUM1 keyword
+apmin = np.min(y_ap)+apheight 
+apmax = np.max(y_ap)-apheight 
+
 data_skysub = []
+data_sky = []
 data_variance = []
 
 #subtract sky
@@ -425,11 +429,13 @@ for i in range(N_WAVELEN):
                     deg=ORDER_APSKY)
 
     data_skysub.append(cut_i - chebval(np.arange(cut_i.shape[0]), coeff))
+    data_sky.append(chebval(np.arange(cut_i.shape[0]), coeff))
     data_variance.append((np.abs(cut_i)/GAIN+(RON**2)/GAIN))
 
 #write out the sky-subtracted and the variance images to fits files
 hdr = objhdu[0].header
 data_skysub = np.array(data_skysub).T
+data_sky = np.array(data_sky).T
 data_variance = np.array(data_variance).T
 hdr.add_history(f"Sky subtracted using sky offset = {ap_sky_offset}, "
                 + f"{SIGMA_APSKY}-sigma {ITERS_APSKY}-iter clipping "
@@ -440,9 +446,14 @@ _.writeto(DATAPATH/(OBJIMAGE.stem+".skysub.fits"), overwrite=True)
 _ = fits.PrimaryHDU(data=data_variance, header=hdr)
 _.data = _.data.astype('float32')
 _.writeto(DATAPATH/(OBJIMAGE.stem+".variance.fits"), overwrite=True)
+_ = fits.PrimaryHDU(data=data_sky, header=hdr)
+_.data = _.data.astype('float32')
+_.writeto(DATAPATH/(OBJIMAGE.stem+".sky.fits"), overwrite=True)
+
 
 #calculate the counts of the 1d-spectrum and its 1-sigma noise (sum in aperture)
 #also calculate the optimally extracted 1d-spectrum and its 1-sigma noise (Horne method)
+#Finally also sum up the sky along the trace for a separate extension in the output file.
 
 #first the sum in the aperture
 pos = np.array([x_ap, y_ap]).T
@@ -451,6 +462,8 @@ phot = aperture_photometry(data_skysub, aps, method='subpixel', subpixels=30)
 ap_summed = phot['aperture_sum'] / OBJEXPTIME
 var = aperture_photometry(data_variance, aps, method='subpixel', subpixels=30)
 ap_variance = var['aperture_sum'] / OBJEXPTIME**2
+sky = aperture_photometry(data_sky, aps, method='subpixel', subpixels=30)
+ap_sky = sky['aperture_sum'] / OBJEXPTIME
 
 #then the optimally extracted spectrum
 ap_optimal = np.array(range(0,N_WAVELEN))
@@ -463,10 +476,10 @@ for n in range(N_WAVELEN):
     weight = gaussian(y,c[n],s[n])
     ap_optimal[n] = np.sum(data_skysub[:,n]*weight/data_variance[:,n]) / np.sum(weight**2/data_variance[:,n])
     var_optimal[n] = np.sum(weight) / np.sum(weight**2/data_variance[:,n])
-    
 ap_optimal = ap_optimal/ OBJEXPTIME
 var_optimal = var_optimal/ OBJEXPTIME**2
 
+#Plot trace in 2d before and after sky-subtraction
 fig, axs = plt.subplots(2, 1, figsize=(10, 6), sharex=False, sharey=False, gridspec_kw=None)
 axs[0].imshow(objimage, vmin=0, vmax=1000, origin='lower')
 axs[1].imshow(data_skysub, vmin=-50, vmax=200, origin='lower')
@@ -479,33 +492,95 @@ for ax in [axs[0], axs[1]]:
     ax.set(ylim=(ap_init-50, ap_init+50))
     for offset in ap_sky_offset:
         ax.plot(x_ap, y_ap+offset, 'y-', lw=1)
-    
-
 plt.tight_layout()
 plt.show()
 
 
+#Now the extraction is complete. We need to write everything out to fits files.
+#We want to make a 1d-file with the same number of pixels and a dispersion dictated 
+#by the condition that there should be a constant dispersion per pixel.
+
+ap_wavelen_start = ap_wavelen[0]
+ap_wavelen_end = ap_wavelen[N_WAVELEN-1]
+dw = (ap_wavelen_end-ap_wavelen_start)/(float(N_WAVELEN)-1)
+wavelength = ap_wavelen_start+range(0,N_WAVELEN)*dw
+
+#Interpolate onto the new grid
+f = interp1d(ap_wavelen,ap_optimal,fill_value="extrapolate", kind='cubic')
+out1 = f(wavelength)
+f = interp1d(ap_wavelen,ap_summed,fill_value="extrapolate", kind='cubic')
+out2 = f(wavelength)
+f = interp1d(ap_wavelen,ap_sky,fill_value="extrapolate", kind='cubic')
+out3 = f(wavelength)
+f = interp1d(ap_wavelen,np.sqrt(var_optimal),fill_value="extrapolate", kind='cubic')
+out4 = f(wavelength)
+
+#Now follow John Thorstensen, Dartmouth College (thanks!)
+#copy over the header from the original spectrum.
+rightnow = datetime.now().strftime("%a %Y-%m-%dT%H:%M:%S")
+hdr = objhdu[0].header
+hdr.add_history(f"extracted using extract_1d.py %s" % rightnow)
+hdr.set('CD1_1', dw, 'dispersion')
+hdr.set('CD1_2', 1., )
+hdr.set('CD2_2', 1., )
+hdr.set('CD3_3', 1., )
+hdr.set('CD1_2', 1., )
+hdr.set('LTM1_1', 1., )
+hdr.set('LTM2_2', 1., )
+hdr.set('LTM3_3', 1., )
+hdr.set('CDELT1', dw, 'dispersion', after=181)
+hdr.set('CRVAL1', wavelength[0], 'X at reference point', after=156)
+hdr.set('CD1_1', dw, 'dispersion')
+hdr.set('CDELT1', dw, 'dispersion', after=181)
+hdr.set('CTYPE1', 'LINEAR  ')
+hdr.set('CRVAL1', wavelength[0], 'X at reference point', after=156)
+hdr.set('CRPIX1', 1.)
+hdr.set('WAT0_001', 'system=equispec')
+hdr.set('WAT1_001', 'wtype=linear label=Pixel')
+hdr.set('WAT2_001', 'wtype=linear')
+hdr.set('WAT3_001', 'wtype=linear')
+hdr.set('APNUM1', '1 1 %7.2f %7.2f' % (apmin, apmax))
+hdr.set('BANDID1', "Optimally extracted spectrum")
+hdr.set('BANDID2', "Straight sum of spectrum")
+hdr.set('BANDID3', "Background fit")
+hdr.set('BANDID4', "Sigma per pixel")
+
+# stack in the same array configuration as a multispec
+multispecdata = fake_multispec_data((out1, out2, out3, out4))
+hduout = fits.PrimaryHDU(multispecdata)
+hdrcopy = hdr.copy(strip = True)
+hduout.header.extend(hdrcopy, strip=True, update=True,
+        update_first=False, useblanks=True, bottom=False)
+
+hduout.writeto(OBJIMAGE.stem+".ms_1d.fits", overwrite=True)
+print(" ")
+print("** Wrote output file '%s.ms_1d.fits' ." % OBJIMAGE.stem)
+print(" ")
+
+#Also write spectrum to an ascii-file
+df_frame = {'wave':wavelength, 'optflux':out1, 'sumflux':out2, 'sky':out3, 'opt_sigma':out4}
+df = pd.DataFrame(df_frame,dtype='float32')
+df.to_csv(OBJIMAGE.stem+'.ms_1dw.dat', header=None, index=None, sep=' ')
+print(" ")
+print("** Wrote output file '%s.ms_1d.dat' ." % OBJIMAGE.stem)
+print(" ")
+
+#Finally plot the extracted spectrum
 fig = plt.figure(figsize=(10,5))
 plt.xlim(3600,9300)
-ii = (ap_wavelen > 3600) & (ap_wavelen < 9300)
-plt.ylim(0,np.amax(ap_summed[ii])*1.2)
+ii = (wavelength > 3600) & (wavelength < 9300)
+plt.ylim(0,np.amax(out1[ii])*1.2)
 plt.xlabel('lambda i Å')
 plt.ylabel('Flux')
 
 plt.xlabel('Observed wavelength [Å]')
 plt.ylabel('Flux [arbitrary units]')
 
-plt.plot(ap_wavelen, ap_summed, lw = 1,
-         alpha=0.5, label='1d extracted spectrum')
-plt.plot(ap_wavelen, ap_optimal, lw = 1,
-         alpha=0.5, label='1d optimal spectrum', color='y')
-plt.plot(ap_wavelen, np.sqrt(ap_variance), lw=1, color='r')
-plt.plot(ap_wavelen, np.sqrt(var_optimal), lw=1, color='y')
+plt.plot(wavelength, out2, lw = 1,
+         alpha=0.5, color='r', label='1d summed spectrum')
+plt.plot(wavelength, out1, lw = 1,
+         alpha=0.75, label='1d Horne-extracted spectrum', color='b')
+plt.plot(wavelength, out4, lw=1, color='b')
 plt.legend()
 plt.show()
-
-#Write spectrum to a file
-df_frame = {'wave':ap_wavelen, 'optflux':ap_optimal, 'optnoise':np.sqrt(var_optimal), 'flux':ap_summed, 'noise':np.sqrt(ap_variance)}
-df = pd.DataFrame(df_frame,dtype='float32')
-df.to_csv('spec1_1dw.dat', header=None, index=None, sep=' ')
 
