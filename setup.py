@@ -10,6 +10,7 @@ from matplotlib import gridspec, rcParams, rc
 from matplotlib.widgets import Cursor
 
 from astropy.table import Table, Column
+from astropy.table import QTable
 from astropy.io import fits
 from astropy.stats import sigma_clip, gaussian_fwhm_to_sigma
 from astropy.modeling.models import Gaussian1D, Chebyshev2D
@@ -24,15 +25,15 @@ from scipy.interpolate import interp1d
 import astroscrappy
 import glob
 
+from datetime import datetime
+
 import pandas as pd
+
 
 FONTSIZE = 12 # Change it on your computer if you wish.
 rcParams.update({'font.size': FONTSIZE})
 
 fitter = LevMarLSQFitter()
-
-def gaussian(x, mu, sig, amp, bg):
-    return bg + amp*np.exp(-0.5*(x-mu)**2/sig**2)
 
 #%%
 DATAPATH = Path('./')
@@ -43,11 +44,17 @@ if not os.path.exists(newpath):
     os.makedirs(newpath)
 
 DISPAXIS = 1  # 1 = line = python_axis_1 // 2 = column = python_axis_0
-COMPIMAGE = DATAPATH/'arcsub.fits' # Change directory if needed!
-COMPSTDIMAGE = DATAPATH/'arcsub_std.fits' # Change directory if needed!
+COMPIMAGE = DATAPATH/'arcsub.fits' 
+COMPSTDIMAGE = DATAPATH/'arcsub_std.fits' 
 STDIMAGE  = DATAPATH/'std.fits'
 OBJIMAGE  = DATAPATH/'spec1.fits'
+
+#Fitter
 LINE_FITTER = LevMarLSQFitter()
+
+#Detector
+GAIN = 0.16 #ADU/electron
+RON = 4.3 #Electron
 
 # Parameters for IDENTIFY
 FITTING_MODEL_ID = 'Chebyshev'
@@ -59,8 +66,8 @@ FWHM_ID = 2.5 # rough guess of FWHM of lines in IDENTIFY (pixels)
 FITTING_MODEL_REID = 'Chebyshev' # 2-D fitting function
 ORDER_SPATIAL_REID = 6
 ORDER_WAVELEN_REID = 6
-STEP_REID = 15  # Reidentification step size in pixels (spatial direction)
-NSUM_REID = 10
+STEP_REID = 1  # Reidentification step size in pixels (spatial direction)
+NSUM_REID = 1 
 TOL_REID = 5 # tolerence to lose a line in pixels
 
 # Parameters for APALL (sky fitting and aperture extract after sky subtraction)
@@ -68,14 +75,19 @@ TOL_REID = 5 # tolerence to lose a line in pixels
 NSUM_AP = 10
 FWHM_AP = 10
 STEP_AP = 10  # Recentering step size in pixels (dispersion direction)
+
+#Weight function for optimal extraction
+def gaussian(x, mu, sig):
+    return np.exp(-0.5*(x-mu)**2/sig**2) / (np.sqrt(2.*np.pi)*sig)
+
 ## parameters for sky fitting
 FITTING_MODEL_APSKY = 'Chebyshev'
-ORDER_APSKY = 2
+ORDER_APSKY = 1
 SIGMA_APSKY = 3
 ITERS_APSKY = 5
 ## parameters for aperture tracing
 FITTING_MODEL_APTRACE = 'Chebyshev'
-ORDER_APTRACE = 3
+ORDER_APTRACE = 4
 SIGMA_APTRACE = 3
 ITERS_APTRACE = 5 
 # The fitting is done by SIGMA_APTRACE-sigma ITERS_APTRACE-iters clipped on the
@@ -115,6 +127,17 @@ N_AP = N_WAVELEN//STEP_AP # No. of aperture finding
 MINSEP_PK = 5   # minimum separation of peaks
 MINAMP_PK = 0.01 # fraction of minimum amplitude (wrt maximum) to regard as peak
 NMAX_PK = 50
+
+#For setting up the output fits-spectra
+def fake_multispec_data(arrlist):
+   # takes a list of 1-d numpy arrays, which are
+   # to be the 'bands' of a multispec, and stacks them
+   # into the format expected for a multispec.  As of now
+   # there can only be a single 'aperture'.
+   return np.expand_dims(np.array(arrlist), 1)
+
+
 print("setting done!")
+
 
 
