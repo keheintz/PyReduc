@@ -6,6 +6,10 @@ exec(open("setup.py").read())
 # =============================================================================
 # For REIDENTIFY, I used astropy.modeling.models.Chebyshev2D
 
+#DEFINE here
+#GAIN = 0.16
+#RON = 4.3
+
 # Read idarc 
 try:
     data = np.loadtxt('database/idarc.txt')
@@ -560,7 +564,7 @@ print(" ")
 #Also write spectrum to an ascii-file
 df_frame = {'wave':wavelength, 'optflux':out1, 'sumflux':out2, 'sky':out3, 'opt_sigma':out4}
 df = pd.DataFrame(df_frame,dtype='float32')
-df.to_csv(OBJIMAGE.stem+'.ms_1dw.dat', header=None, index=None, sep=' ')
+df.to_csv(OBJIMAGE.stem+'.ms_1d.dat', header=None, index=None, sep=' ')
 print(" ")
 print("** Wrote output file '%s.ms_1d.dat' ." % OBJIMAGE.stem)
 print(" ")
