@@ -473,7 +473,7 @@ c = chebval(x_ap, coeff_aptrace_fin)
 s = chebval(x_ap, coeff_aptrace_fwhm_fin)/np.sqrt(8.*np.log(2.))
 y = np.array(range(0,NROWS))
 for n in range(N_WAVELEN):
-    weight = gaussian(y,c[n],s[n])
+    weight = gaussweight(y,c[n],s[n])
     ap_optimal[n] = np.sum(data_skysub[:,n]*weight/data_variance[:,n]) / np.sum(weight**2/data_variance[:,n])
     var_optimal[n] = np.sum(weight) / np.sum(weight**2/data_variance[:,n])
 ap_optimal = ap_optimal/ OBJEXPTIME

@@ -1,4 +1,4 @@
-from pathlib import Path
+from pathlib import Path 
 import numpy as np
 
 from numpy.polynomial.chebyshev import chebfit, chebval
@@ -34,6 +34,10 @@ FONTSIZE = 12 # Change it on your computer if you wish.
 rcParams.update({'font.size': FONTSIZE})
 
 fitter = LevMarLSQFitter()
+
+def gaussian(x, mu, sig, amp, bg):
+    return bg + amp*np.exp(-0.5*(x-mu)**2/sig**2)
+
 
 #%%
 DATAPATH = Path('./')
@@ -77,7 +81,7 @@ FWHM_AP = 10
 STEP_AP = 10  # Recentering step size in pixels (dispersion direction)
 
 #Weight function for optimal extraction
-def gaussian(x, mu, sig):
+def gaussweight(x, mu, sig):
     return np.exp(-0.5*(x-mu)**2/sig**2) / (np.sqrt(2.*np.pi)*sig)
 
 ## parameters for sky fitting
