@@ -68,7 +68,7 @@ plt.show()
 #Write spectrum to an ascii file
 df_frame = {'wave':wavelength, 'optflux':optflux,  'sumflux':sumflux, 'skyflux':skyflux, 'fluxnoise':noiseflux}
 df = pd.DataFrame(df_frame,dtype='float32')
-df.to_csv('flux_'+OBJIMAGE.stem+'.ms_1d.dat', header=None, index=None, sep=' ')
+df.to_csv('flux_'+OBJIMAGE.stem+'.ms_1dw.dat', header=None, index=None, sep=' ')
 
 #Write the fits-file
 rightnow = datetime.now().strftime("%a %Y-%m-%dT%H:%M:%S")

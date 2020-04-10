@@ -1,3 +1,5 @@
+import plotly.graph_objects as go
+import plotly.io as pio
 from IPython.display import Image
 
 #Run the setup script

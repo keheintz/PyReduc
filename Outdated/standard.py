@@ -17,11 +17,11 @@ exptime = hdr['EXPTIME']
 airmass = hdr['AIRMASS']
 
 #read in the standard star measurements
-std_data = np.loadtxt('std_1d.dat')
+std_data = np.loadtxt('std_1dw.dat')
 lam = std_data[:,0]
 stdcounts = std_data[:,1]
 
-f.write("%s  %s  %s\n" % ('#', stdnm, 'std_1d.dat'))
+f.write("%s  %s  %s\n" % ('#', stdnm, 'std_1dw.dat'))
 f.write("%5.1f %4.3f\n" % (exptime, airmass))
 f.close
 

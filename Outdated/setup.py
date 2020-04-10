@@ -68,11 +68,11 @@ FWHM_ID = 2.5 # rough guess of FWHM of lines in IDENTIFY (pixels)
 
 # Parameters for REIDENTIFY
 FITTING_MODEL_REID = 'Chebyshev' # 2-D fitting function
-ORDER_SPATIAL_REID = 5
+ORDER_SPATIAL_REID = 6
 ORDER_WAVELEN_REID = 6
-STEP_REID = 5  # Reidentification step size in pixels (spatial direction)
-NSUM_REID = 5 
-TOL_REID = 25 # tolerence to lose a line in pixels
+STEP_REID = 10  # Reidentification step size in pixels (spatial direction)
+NSUM_REID = 10 
+TOL_REID = 5 # tolerence to lose a line in pixels
 
 # Parameters for APALL (sky fitting and aperture extract after sky subtraction)
 ## parameters for finding aperture
