@@ -65,6 +65,7 @@ FITTING_MODEL_ID = 'Chebyshev'
 ORDER_ID = 6 
 NSUM_ID = 10
 FWHM_ID = 2.5 # rough guess of FWHM of lines in IDENTIFY (pixels)
+IDtolerance = 5. #Tolerance for deleting lines in fitting arcdata.
 
 # Parameters for REIDENTIFY
 FITTING_MODEL_REID = 'Chebyshev' # 2-D fitting function
