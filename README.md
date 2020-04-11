@@ -32,26 +32,23 @@ The order of running the scripts are:
 The script setup.py defines all the packages and gobal parameters. It is run by all the other scripts.
 
 
-1) identify.py: identify arclines. 
+1) identify.py: identify arclines and fit a polynomium to the selected lines. 
 
 
-2) fitarcdata.py: fit a checychef polynomium to the pixel to wavelength relation. 
+2) extract_1d.py: extraction of the wavelength calibrated 1d spectrum. This produces as output the 1d science file nd a 1-sigma noise spectrum. There is both an optimally extracted version and a sum over an aperture.
 
 
-3) transform.py: 2d checychef polynomium to the pixel to wavelength relation. Makes rectified 2d-spectrum as output.
+3) standard.py and sensfunction.py: generation of the sensitivity function for flux calibration.
 
 
-4) extract_1d.py: extraction of the wavelength calibrated 1d spectrum. This produces as output the 1d science file and a 1-sigma noise spectrum. There is both an optimally extracted version and a sum over an aperture.
+4) calibrate.py: use the output sensitivity function to calibrate the science spectrum (incl. the noise spectrum).
 
 
-5) standard.py and sensfunction.py: generation of the sensitivity function for flux calibration.
-
-
-6) calibrate.py: use the output sensitivity function to calibrate the science spectrum (incl. the noise spectrum).
+5) transform.py: We also have a preliminary script that can fit a 2d chebychef polynomium to the pixel to wavelength relation. Makes rectified 2d-spectrum as output. 
 
 
 Missing (obviously a lot):
-1) Ideally, the identify.py and fitarcdata.py should be combined such that is possible to iteratively add and delete lines from the idarc list, fit the lines, go back to add/remove more lines, etc.
+1) Ideally, identify.py could be made more userfriendly.
 
 2) sensfunction.py needs to be improved to allow deletion of points during the fitting.
 
