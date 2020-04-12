@@ -8,11 +8,48 @@ For now, the project can only be downloaded directly from the GitHub repository.
 
 When working on your own data it is important that the same folder structure is used. 
 
-## Work-flow
+# Work-flow
 
-Give details on how to run the scripts -- from raw data to final reduced spectrum.
+The order of running the scripts are:
 
-### Code philosophy
+The script setup.py defines all the packages and gobal parameters. It is run by all the other scripts.
+
+
+1) identify.py: identify arclines and fit a polynomium to the selected lines. 
+
+
+2) extract_1d.py: extraction of the wavelength calibrated 1d spectrum. This produces as output the 1d science file nd a 1-sigma noise spectrum. There is both an optimally extracted version and a sum over an aperture.
+
+
+3) standard.py and sensfunction.py: generation of the sensitivity function for flux calibration.
+
+
+4) calibrate.py: use the output sensitivity function to calibrate the science spectrum (incl. the noise spectrum).
+
+
+5) transform.py: We also have a preliminary script that can fit a 2d chebychef polynomium to the pixel to wavelength relation. Makes rectified 2d-spectrum as output. 
+
+# Code philosophy
+
+Let's first make something quickly that works. Then we can refine it. Otherwise, I fear it will just go nowhere. We will assume that the science-file and arc-lamp file are made before running these reduction scripts. Scripts to produce these files will also be written (some of it is there : mkspecbias.py and mkspecflat.py). 
+
+We have started from Yoonsoo Bach's notebook on github:
+https://nbviewer.jupyter.org/github/ysBach/SNU_AOclass/blob/master/Notebooks/Spectroscopy_in_Python.ipynb?fbclid=IwAR22YsWpk-uNw7Iz9LGolRD6kbtpcTeqmYDKgfeRIQHQ42M8OLfRbRzJmeY
+
+That we have used as a skeleton to start from.
+
+Like iraf we try to keep output from scripts in the database folder.
+
+# To-do
+
+Missing (obviously a lot):
+1) Ideally, identify.py could be made more userfriendly.
+
+2) sensfunction.py needs to be improved to allow deletion of points during the fitting.
+
+3) testing, testing, testing, debugging, debugging, debugging.
+
+4) add more flexibility and user-control.
 
 <!--- Text can be **bold**, _italic_, or ~~strikethrough~~. 
 [Link to another page](./another-page.html). 
