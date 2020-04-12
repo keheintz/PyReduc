@@ -2,6 +2,18 @@
 layout: default
 ---
 
+# Installing
+
+For now, the project can only be downloaded directly from the GitHub repository. Then verify that you have the most recent versions imported in the setup.py file installed. 
+
+When working on your own data it is important that the same folder structure is used. 
+
+## Work-flow
+
+Give details on how to run the scripts -- from raw data to final reduced spectrum.
+
+### Code philosophy
+
 <!--- Text can be **bold**, _italic_, or ~~strikethrough~~. 
 [Link to another page](./another-page.html). 
 There should be whitespace between paragraphs. 
