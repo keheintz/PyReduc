@@ -355,9 +355,9 @@ del_aptrace_fwhm = ~np.in1d(x_aptrace, x_aptrace_fwhm_fin) # deleted points
 
 #Plot the center of the trace and the fwhm of the trace and the fits to these
 fig = plt.figure(figsize=(10,10))
-gs = gridspec.GridSpec(4, 1)
-ax2 = plt.subplot(gs[3])
-ax1 = plt.subplot(gs[1:3], sharex=ax2)
+gs = gridspec.GridSpec(3, 1)
+ax2 = plt.subplot(gs[2])
+ax1 = plt.subplot(gs[1], sharex=ax2)
 ax3 = plt.subplot(gs[0], sharex=ax2)
 
 title_str = ('Aperture Trace Fit ({:s} order {:d})\n'
@@ -372,7 +372,7 @@ ax1.legend()
 ax2.plot(x_aptrace_fin, resid_aptrace_fin, ls='', marker='+')
 ax2.axhline(+np.std(resid_aptrace_fin, ddof=1), ls=':', color='k')
 ax2.axhline(-np.std(resid_aptrace_fin, ddof=1), ls=':', color='k', 
-            label='residual std')
+            label='residual std.dev.')
 ax3.plot(x_aptrace, aptrace_fwhm, ls='', marker='+', ms=10)
 ax3.plot(x_aptrace_fwhm_fin, fit_aptrace_fwhm_fin, ls='--',
          label="Aperture Width ({:d}/{:d} used)".format(len(aptrace_fwhm_fin), N_AP-1))
@@ -380,11 +380,12 @@ ax3.plot(x_aptrace_fwhm_fin, fit_aptrace_fwhm_fin, ls='--',
 ax1.set_ylabel('Found object position')
 ax2.set_ylabel('Residual (pixel)')
 ax2.set_xlabel('Dispersion axis (pixel)')
-ax3.set_ylabel('FWHM (pixel)')
+ax3.set_ylabel('FWHM of trace (pixel)')
 ax1.grid(ls=':')
 ax2.grid(ls=':')
 ax3.grid(ls=':')
 ax2.set_ylim(-.5, .5)
+ax3.set_ylim(.3*np.mean(fit_aptrace_fwhm_fin), 2.0*np.mean(fit_aptrace_fwhm_fin))
 ax2.legend()
 plt.show()
 #plt.savefig('aptrace.png', bbox_inches='tight')

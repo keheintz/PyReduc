@@ -3,25 +3,6 @@ from IPython.display import Image
 #Run the setup script
 exec(open("setup.py").read())
 
-#Reference wavelengths for the arclamp
-#The expected format: wavelength and text (ID of the line)
-wavelengthtable = list()
-wavelength = list()
-infile = open('database/mylines_vac.dat', 'r')
-n=1
-for line in infile:
-      words = line.split()
-      wl = float(words[0])
-      id = str()
-      for i in range(1,len(words)): 
-          id+=words[i]
-          id+=' '
-      wavelengthtable.append([int(n), float(wl), id])
-      wavelength.append(wl)
-      n+=1
-wavelengthtable = np.array(wavelengthtable)
-wavelength = np.array(wavelength)
-
 #Structure: We aim for a structure with an outer loop where we go through adding lines
 #and fitting until the user wants to step. In the fitting step it should be possible
 #to delete lines.
@@ -29,7 +10,26 @@ wavelength = np.array(wavelength)
 FindContinue = True
      
 while FindContinue:
-     #Read idarc if it exists already
+#Reference wavelengths for the arclamp
+#The expected format: wavelength and text (ID of the line)
+     wavelengthtable = list()
+     wavelength = list()
+     infile = open('database/mylines_vac.dat', 'r')
+     n=1
+     for line in infile:
+           words = line.split()
+           wl = float(words[0])
+           id = str()
+           for i in range(1,len(words)): 
+               id+=words[i]
+               id+=' '
+           wavelengthtable.append([int(n), float(wl), id])
+           wavelength.append(wl)
+           n+=1
+     wavelengthtable = np.array(wavelengthtable)
+     wavelength = np.array(wavelength)
+
+#Read idarc if it exists already
      if os.path.isfile('database/idarc.txt'):
          print ("idarc exists in the database. I will add to the existing file.")
          pix_wl_table = np.loadtxt('database/idarc.txt')
