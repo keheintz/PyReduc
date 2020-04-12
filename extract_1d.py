@@ -1,18 +1,13 @@
 #Run the setup script
 exec(open("setup.py").read())
 
-# =============================================================================
-# reidentify
-# =============================================================================
-# For REIDENTIFY, I used astropy.modeling.models.Chebyshev2D
-
 # Read idarc 
 try:
     data = np.loadtxt('database/idarc.txt')
     pixnumber = data[:,0]
     wavelength = data[:,1]
 except IOError:
-    print("File not accessible")
+    print("idarc.txt not accessible in the database")
 
 
 ID_init = dict(peak=pixnumber,
@@ -42,7 +37,6 @@ for i in range(0, N_REID-1):
         cropped = reidentify_i[search_min:search_max]
         x_cropped = np.arange(len(cropped)) + search_min
         
-        #TODO: put something like "lost_factor" to multiply to FWHM_ID in the bounds.
         A_init = np.max(cropped)
         mean_init = peak_pix_init
         stddev_init = FWHM_ID * gaussian_fwhm_to_sigma
@@ -98,8 +92,6 @@ gs = gridspec.GridSpec(3, 3)
 ax1 = plt.subplot(gs[:2, :2])
 ax2 = plt.subplot(gs[2, :2])
 ax3 = plt.subplot(gs[:2, 2])
-#plt.setp(ax2.get_xticklabels(), visible=False)
-#plt.setp(ax3.get_yticklabels(), visible=False)
 
 title_str = ('Reidentify and Wavelength Map\n'
              + 'func=Chebyshev, order (wavelength, dispersion) = ({:d}, {:d})')
@@ -153,7 +145,7 @@ ax3.set_ylim(0, N_SPATIAL)
 plt.show()
 
 # =============================================================================
-# apall (1): Plot a cut
+# Plot a cut along the spatial direction for selection of sky and object
 # =============================================================================
 lower_cut = N_WAVELEN//2 - NSUM_AP//2 
 upper_cut = N_WAVELEN//2 + NSUM_AP//2
@@ -175,7 +167,7 @@ ax.set_title(title_str.format(np.median(apall_1), int(N_SPATIAL/100)))
 
 
 # =============================================================================
-# apall(2): manually select trace sky regions
+# manually select trace sky regions
 # =============================================================================
 
 print('First click on sky-region left of the trace (start, end), then the trace and finally sky region right of the trace (star, end). End with q')
@@ -198,11 +190,6 @@ ap_sky = np.array([slitregions[0], slitregions[1], slitregions[3], slitregions[4
 
 plt.show()
 
-# Regions to use as sky background. xl1 - 1, xu1, xl2 - 1, xu2. (0-indexing)
-#   Sky region should also move with aperture center!
-#   from ``ap_center - 50`` to ``ap_center - 40``, for example, should be used.
-
-# Interactive check
 x_sky = np.hstack( (np.arange(ap_sky[0], ap_sky[1]), 
                     np.arange(ap_sky[2], ap_sky[3])))
 sky_val = np.hstack( (apall_1[ap_sky[0]:ap_sky[1]], 
@@ -243,7 +230,7 @@ plt.show()
 
 
 # =============================================================================
-# apall (3): aperture trace
+# aperture trace
 # =============================================================================
 # within +- 100 pixels around the aperture, the wavelength does not change much
 # as can be seen from reidentify figure 
@@ -256,12 +243,7 @@ plt.show()
 
 aptrace = []
 aptrace_fwhm = []
-#coeff_apsky = []
-#aptrace_apsum = []
-#aptrace_wavelen = []
 
-# TODO: This is quite slow as for loop used: improvement needed.
-# I guess the problem is sigma-clipping rather than fitting process..
 for i in range(N_AP - 1):
     lower_cut, upper_cut = i*STEP_AP, (i+1)*STEP_AP
     
@@ -271,7 +253,6 @@ for i in range(N_AP - 1):
     
     # Subtract fitted sky
     if FITTING_MODEL_APSKY.lower() == 'chebyshev':
-        # TODO: maybe we can put smoothing function as IRAF APALL's b_naverage 
         clip_mask = sigma_clip(sky_val, sigma=SIGMA_APSKY, maxiters=ITERS_APSKY).mask
         coeff, fitfull = chebfit(x_sky[~clip_mask], 
                                  sky_val[~clip_mask],
@@ -282,7 +263,6 @@ for i in range(N_AP - 1):
     else:
         raise ValueError('Function {:s} is not implemented.'.format(FITTING_MODEL_APSKY))
 
-    #TODO: put something like "lost_factor" to multiply to FWHM_ID in the bounds.
     search_min = int(np.around(ap_init - 3*FWHM_AP))
     search_max = int(np.around(ap_init + 3*FWHM_AP))
     cropped = apall_i[search_min:search_max]
@@ -296,7 +276,6 @@ for i in range(N_AP - 1):
         continue
     peak_pix = peak_pix[0][0]
     
-    #TODO: put something like "lost_factor" to multiply to FWHM_ID in the bounds.
     g_init = Gaussian1D(amplitude=cropped[peak_pix], 
                        mean=peak_pix, 
                        stddev=FWHM_AP * gaussian_fwhm_to_sigma,
@@ -308,21 +287,13 @@ for i in range(N_AP - 1):
     std_pix = fitted.stddev.value
     aptrace_fwhm.append(fitted.fwhm)
     aptrace.append(center_pix)
-#    coeff_apsky.append(coeff)
-#    aptrace_apsum.append(apsum)
-#    apsum_lower = int(np.around(center_pix - apsum_sigma_lower * std_pix))
-#    apsum_upper = int(np.around(center_pix + apsum_sigma_upper * std_pix))
-#    apsum = np.sum(apall_i[apsum_lower:apsum_upper])
 
 aptrace = np.array(aptrace)
 aptrace_fwhm = np.array(aptrace_fwhm)
 
-#coeff_apsky = np.array(coeff_apsky)
-#aptrace_apsum = np.array(aptrace_apsum)
-
 
 # =============================================================================
-# apall(4): aperture trace fit
+# aperture trace fit
 # =============================================================================
 x_aptrace = np.arange(N_AP-1) * STEP_AP
 
@@ -388,11 +359,10 @@ ax2.set_ylim(-.5, .5)
 ax3.set_ylim(.3*np.mean(fit_aptrace_fwhm_fin), 2.0*np.mean(fit_aptrace_fwhm_fin))
 ax2.legend()
 plt.show()
-#plt.savefig('aptrace.png', bbox_inches='tight')
 
 
 # =============================================================================
-# apall(5): aperture sum
+# aperture sum and Horne weighted sum
 # =============================================================================
 apsum_sigma_lower = 2.104 # See below
 apsum_sigma_upper = 2.130 
