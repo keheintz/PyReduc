@@ -2,13 +2,13 @@
 layout: default
 ---
 
-# Installing
+### Installing
 
 For now, the project can only be downloaded directly from the GitHub repository. Then verify that you have the most recent versions imported in the setup.py file installed. 
 
 When working on your own data it is important that the same folder structure is used. 
 
-# Work-flow
+### Work-flow
 
 The order of running the scripts are:
 
@@ -29,7 +29,7 @@ The script setup.py defines all the packages and gobal parameters. It is run by 
 
 5) transform.py: We also have a preliminary script that can fit a 2d chebychef polynomium to the pixel to wavelength relation. Makes rectified 2d-spectrum as output. 
 
-# Code philosophy
+### Code philosophy
 
 Let's first make something quickly that works. Then we can refine it. Otherwise, I fear it will just go nowhere. We will assume that the science-file and arc-lamp file are made before running these reduction scripts. Scripts to produce these files will also be written (some of it is there : mkspecbias.py and mkspecflat.py). 
 
@@ -40,7 +40,7 @@ That we have used as a skeleton to start from.
 
 Like iraf we try to keep output from scripts in the database folder.
 
-# To-do
+### To-do
 
 Missing (obviously a lot):
 1) Ideally, identify.py could be made more userfriendly.
