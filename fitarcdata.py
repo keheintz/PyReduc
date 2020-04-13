@@ -5,20 +5,21 @@ exec(open("setup.py").read())
 # fitarc: fit the arc data from identify
 # =============================================================================
 
-# Read idacr as astropy table
-try:
-    pix_wl_table = np.loadtxt('database/idarc.txt')
-    pixnumber = pix_wl_table[:,0]
-    wavelength = pix_wl_table[:,1]
-except IOError:
-    print("Output from identify.py is not accessible in the database")
-
-ID_init = dict(pixel_gauss=pixnumber,
-               wavelength=wavelength)
-ID_init = Table(ID_init)
- 
 FitContinue = True
 while FitContinue:
+
+# Read idacr as astropy table
+    try:
+        pix_wl_table = np.loadtxt('database/idarc.dat')
+        pixnumber = pix_wl_table[:,0]
+        wavelength = pix_wl_table[:,1]
+    except IOError:
+        print("Output from identify.py is not accessible in the database")
+
+    ID_init = dict(pixel_gauss=pixnumber,
+                   wavelength=wavelength)
+    ID_init = Table(ID_init)
+ 
     
     if FITTING_MODEL_ID.lower() == 'chebyshev':
         coeff_ID, fitfull = chebfit(ID_init['pixel_gauss'], 
@@ -70,23 +71,22 @@ while FitContinue:
                  get_new_line = False
                  plt.close("all")
     
+#Update the list
+        pix_wl_table_new = list()
+        for n in range(0,len(wavelength)): 
+             if (wavelength[n] not in deleted): pix_wl_table_new.append([pixnumber[n], wavelength[n]])
+
+#Print list of pixel numbers and wavelengths to file in the database
+        pix_wl_table_new = np.array(pix_wl_table_new)
+        print(" Pixel to wavelength reference table :")
+        df = pd.DataFrame(pix_wl_table_new[pix_wl_table_new[:,1].argsort()],dtype='float32')
+        print(df)
+        df.to_csv('database/idarc.dat', header=None, index=None, sep=' ')
+
     plt.show()
     
     answer = input("Fit again [Y/N]?: ")
     if answer.lower() in ['yes', 'y', '']: FitContinue = True
     else: FitContinue = False
 
-print(deleted)
-
-#Update the list
-pix_wl_table_new = list()
-for n in range(0,len(wavelength)): 
-     if (wavelength[n] not in deleted): pix_wl_table_new.append([pixnumber[n], wavelength[n]])
-
-#Print list of pixel numbers and wavelengths to file in the database
-pix_wl_table_new = np.array(pix_wl_table_new)
-print(" Pixel to wavelength reference table :")
-df = pd.DataFrame(pix_wl_table_new[pix_wl_table_new[:,1].argsort()],dtype='float32')
-print(df)
-df.to_csv('database/idarc.txt', header=None, index=None, sep=' ')
 

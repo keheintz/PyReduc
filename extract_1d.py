@@ -3,11 +3,11 @@ exec(open("setup.py").read())
 
 # Read idarc 
 try:
-    data = np.loadtxt('database/idarc.txt')
+    data = np.loadtxt('database/idarc.dat')
     pixnumber = data[:,0]
     wavelength = data[:,1]
 except IOError:
-    print("idarc.txt not accessible in the database")
+    print("idarc.dat not accessible in the database")
 
 
 ID_init = dict(peak=pixnumber,
@@ -201,7 +201,6 @@ title_str = r'Skyfit: {:s} order {:d} ({:.1f}-sigma {:d}-iters)'
 ax.plot(x_apall, apall_1, lw=1)
 
 if FITTING_MODEL_APSKY.lower() == 'chebyshev':
-    # TODO: maybe the clip is "3-sigma clip to residual and re-fit many times"?
     clip_mask = sigma_clip(sky_val, sigma=SIGMA_APSKY, maxiters=ITERS_APSKY).mask
     coeff_apsky, fitfull = chebfit(x_sky[~clip_mask], 
                                    sky_val[~clip_mask],

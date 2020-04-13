@@ -3,9 +3,13 @@ from IPython.display import Image
 #Run the setup script
 exec(open("setup.py").read())
 
-#Structure: We aim for a structure with an outer loop where we go through adding lines
-#and fitting until the user wants to step. In the fitting step it should be possible
-#to delete lines.
+#Structure: We aim for a structure with an outer loop where we go through
+#adding lines and fitting until the user wants to stop. Within the outer loop
+#there are two steps: 1) adding lines, 2) fitting / deleting lines. The
+#script will produce an output file in the database idarc.dat The script
+#requires as input a file with reference lines from the arc-lamp used for the
+#observation. List with reference wavelengths can typically be downloaded from
+#observatory web-pages.
 
 FindContinue = True
      
@@ -30,9 +34,9 @@ while FindContinue:
      wavelength = np.array(wavelength)
 
 #Read idarc if it exists already
-     if os.path.isfile('database/idarc.txt'):
+     if os.path.isfile('database/idarc.dat'):
          print ("idarc exists in the database. I will add to the existing file.")
-         pix_wl_table = np.loadtxt('database/idarc.txt')
+         pix_wl_table = np.loadtxt('database/idarc.dat')
      else:
          print ("idarc does not exist in the database. Will make a new file.")
          pix_wl_table = list()
@@ -68,7 +72,7 @@ while FindContinue:
      ax.set_title(title_str.format(MINAMP_PK, MINSEP_PK), fontsize=10)
      
      #If idarc already exists the overplot existing lines
-     if os.path.isfile('database/idarc.txt'):
+     if os.path.isfile('database/idarc.dat'):
           for pixval in pix_wl_table[:,0]:
                plt.axvline(pixval, ymin=0.90, ymax=0.95, color='r', lw=1.5)
           pix_wl_table = list(pix_wl_table)
@@ -113,7 +117,7 @@ while FindContinue:
      print(" Pixel to wavelength reference table :")
      df = pd.DataFrame(pix_wl_table[pix_wl_table[:,1].argsort()],dtype='float32')
      print(df)
-     df.to_csv('database/idarc.txt', header=None, index=None, sep=' ')
+     df.to_csv('database/idarc.dat', header=None, index=None, sep=' ')
      
      #If there are more than ORDER_ID then run the fitarcdata script
      if len(pix_wl_table[:,0]) >= ORDER_ID: 
