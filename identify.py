@@ -120,8 +120,8 @@ while FindContinue:
      df.to_csv('database/idarc.dat', header=None, index=None, sep=' ')
      
      #If there are more than ORDER_ID then run the fitarcdata script
-     if len(pix_wl_table[:,0]) >= ORDER_ID: 
-            print('There are more than %s lines in the list so there is enough to fit' % len(pix_wl_table[0,:]))
+     if len(pix_wl_table[:,0]) >= ORDER_ID+2: 
+            print('There are more than %s lines in the list so there is enough to fit' % ORDER_ID+2)
             exec(open("fitarcdata.py").read())
      else: print('Too few lines to fit. Add more lines.')
 
