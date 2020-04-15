@@ -29,6 +29,10 @@ The script setup.py defines all the packages and gobal parameters. It is run by 
 
 5) transform.py: We also have a preliminary script that can fit a 2d chebychef polynomium to the pixel to wavelength relation. Makes rectified 2d-spectrum as output. 
 
+
+6) background.py: this is for background subtraction without having to use the trace of a source (similar to background in IRAF/twodspec).
+
+
 ### Code philosophy
 
 Let's first make something quickly that works. Then we can refine it. Otherwise, I fear it will just go nowhere. We will assume that the science-file and arc-lamp file are made before running these reduction scripts. Scripts to produce these files will also be written (some of it is there : mkspecbias.py and mkspecflat.py). 
