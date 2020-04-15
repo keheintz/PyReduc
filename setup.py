@@ -5,6 +5,8 @@ from numpy.polynomial.chebyshev import chebfit, chebval
 
 import os as os
 
+import sys
+
 from matplotlib import pyplot as plt
 from matplotlib import gridspec, rcParams, rc
 from matplotlib.widgets import Cursor
