@@ -1,9 +1,6 @@
 import numpy as np
 from astropy.io import fits
-
-
-#Run the setup script
-#exec(open("setup.py").read())
+import os as os
 
 # This is a python program to reduce the science frames
 print('Script running')
@@ -39,8 +36,9 @@ sub1 = fits.open(outnames[0])
 sub2 = fits.open(outnames[1])
 sum = sub1[0].data+sub2[0].data
 rot = np.rot90(sum, k=3)
-fits.writeto('spec1.fits',rot,hdr,overwrite=True)
-
+fits.writeto('../obj.fits',rot,hdr,overwrite=True)
+os.remove(outnames[0])
+os.remove(outnames[1])
 
 #Arcframe
 spec = fits.open('../rawarc/ALDc200207.fits')
@@ -55,5 +53,5 @@ hdr = spec[0].header
 center = int((centers[0]+centers[1])/2.)
 specdata1 = specdata[25:875,center-100:center+100] 
 rot = np.rot90(specdata1, k=3)
-fits.writeto('arcsub.fits',rot,hdr,overwrite=True)
+fits.writeto('../arcsub.fits',rot,hdr,overwrite=True)
 
