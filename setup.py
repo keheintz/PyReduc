@@ -51,16 +51,17 @@ if not os.path.exists(newpath):
 
 DISPAXIS = 1  # 1 = line = python_axis_1 // 2 = column = python_axis_0
 COMPIMAGE = DATAPATH/'arcsub.fits' 
-COMPSTDIMAGE = DATAPATH/'arcsub_std.fits' 
+STDCOMPIMAGE = DATAPATH/'arcsub_std.fits' 
 STDIMAGE  = DATAPATH/'std.fits'
-OBJIMAGE  = DATAPATH/'spec1.fits'
+OBJIMAGE  = DATAPATH/'obj.fits'
 
 #Fitter
 LINE_FITTER = LevMarLSQFitter()
 
 #Detector
+#Preferable get this from header. For now just hard-wire the numbers
 GAIN = 0.16 #ADU/electron
-RON = 4.3 #Electron
+RON = 4.3 #Electrons
 
 # Parameters for IDENTIFY
 FITTING_MODEL_ID = 'Chebyshev'
@@ -106,9 +107,13 @@ ORDER_SF = 9
 
 #%%
 lamphdu = fits.open(COMPIMAGE)
+stdlamphdu = fits.open(STDCOMPIMAGE)
 objhdu = fits.open(OBJIMAGE)
+stdhdu = fits.open(STDIMAGE)
 lampimage = lamphdu[0].data
+stdlampimage = stdlamphdu[0].data
 objimage  = objhdu[0].data
+stdimage  = stdhdu[0].data
 
 if lampimage.shape != objimage.shape:
     raise ValueError('lamp and obj images should have same sizes!')
@@ -122,6 +127,9 @@ elif DISPAXIS != 1:
 OBJEXPTIME = objhdu[0].header['EXPTIME']
 OBJAIRMASS = objhdu[0].header['AIRMASS']
 OBJNAME = objhdu[0].header['OBJECT']
+STDEXPTIME = stdhdu[0].header['EXPTIME']
+STDAIRMASS = stdhdu[0].header['AIRMASS']
+STDNAME = stdhdu[0].header['OBJECT']
 # Now python axis 0 (Y-direction) is the spatial axis 
 # and 1 (X-direciton) is the wavelength (dispersion) axis.
 N_SPATIAL, N_WAVELEN = np.shape(lampimage)
