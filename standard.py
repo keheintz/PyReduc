@@ -8,7 +8,7 @@ exec(open("setup.py").read())
 f = open('database/stdinfo', 'w')
 
 #name of standard star
-stdnm = 'hd849'
+stdnm = 'feige66'
 
 #get information from header
 std_file = fits.open(STDIMAGE)
@@ -17,7 +17,7 @@ exptime = hdr['EXPTIME']
 airmass = hdr['AIRMASS']
 
 #read in the standard star measurements
-std_data = np.loadtxt('std_1d.dat')
+std_data = np.loadtxt('std.ms_1d.dat')
 lam = std_data[:,0]
 stdcounts = std_data[:,1]
 

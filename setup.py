@@ -60,8 +60,8 @@ LINE_FITTER = LevMarLSQFitter()
 
 #Detector
 #Preferable get this from header. For now just hard-wire the numbers
-GAIN = 0.16 #ADU/electron
-RON = 4.3 #Electrons
+GAIN = 0.95 #ADU/electron
+RON = 3.5 #Electrons
 
 # Parameters for IDENTIFY
 FITTING_MODEL_ID = 'Chebyshev'
@@ -90,7 +90,7 @@ def gaussweight(x, mu, sig):
 
 ## parameters for sky fitting
 FITTING_MODEL_APSKY = 'Chebyshev'
-ORDER_APSKY = 1
+ORDER_APSKY = 2
 SIGMA_APSKY = 3
 ITERS_APSKY = 5
 ## parameters for aperture tracing
@@ -114,6 +114,12 @@ lampimage = lamphdu[0].data
 stdlampimage = stdlamphdu[0].data
 objimage  = objhdu[0].data
 stdimage  = stdhdu[0].data
+
+#check for NaNs
+if np.isnan(objhdu[0].data).any(): print('There are NaNs in the object image. This may course a crash.')
+if np.isnan(stdhdu[0].data).any(): print('There are NaNs in the std image. This may course a crash.')
+if np.isnan(lamphdu[0].data).any(): print('There are NaNs in the arc image. This may course a crash.')
+if np.isnan(stdlamphdu[0].data).any(): print('There are NaNs in the std-arc image. This may course a crash.')
 
 if lampimage.shape != objimage.shape:
     raise ValueError('lamp and obj images should have same sizes!')
