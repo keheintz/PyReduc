@@ -1,4 +1,8 @@
 from IPython.display import Image
+from tabulate import tabulate
+
+def pprint_df(dframe):
+    print(tabulate(dframe, headers='keys', tablefmt='psql', showindex=False))
 
 #Run the setup script
 exec(open("setup.py").read())
@@ -17,6 +21,7 @@ while FindContinue:
 #Reference wavelengths for the arclamp
 #The expected format: wavelength and text (ID of the line)
      wavelengthtable = list()
+     #wavelengthtable = list(['Number', 'Wavelength (AA)', 'ID'])
      wavelength = list()
      infile = open('database/mylines_vac.dat', 'r')
      n=1
@@ -42,16 +47,10 @@ while FindContinue:
          pix_wl_table = list()
      
      
-     #Print numbered list of reference wavelengths
-     #Ideally I would like to print this out in a separate scroll-able window
-     print()
-     print('Number', 'Wavelength', 'ID')
-     print('====================')
-     for n in range(0,len(wavelength)): print(n+1,'    ',wavelength[n],'  ',wavelengthtable[n,2])
-     #t = QTable([np.array(wavelengthtable[:,0]),np.array(wavelengthtable[:,1]),np.array(wavelengthtable[:,2])],
-     #             names=('Number', 'Wavelength [Å]', 'ID'),
-     #             meta={'name': 'first table'})
-     
+#Print wavelengthd
+     df = pd.DataFrame(wavelengthtable)
+     pprint_df(df)
+      
      
      #Cut out the region of the arc-file to fit to (defined in setup.py)
      lowercut_ID = N_SPATIAL//2 - NSUM_ID//2
