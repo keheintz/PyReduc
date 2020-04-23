@@ -31,6 +31,7 @@ from datetime import datetime
 
 import pandas as pd
 
+from tabulate import tabulate
 
 FONTSIZE = 12 # Change it on your computer if you wish.
 rcParams.update({'font.size': FONTSIZE})
@@ -40,6 +41,8 @@ fitter = LevMarLSQFitter()
 def gaussian(x, mu, sig, amp, bg):
     return bg + amp*np.exp(-0.5*(x-mu)**2/sig**2)
 
+def pprint_df(dframe):
+    print(tabulate(dframe, headers='keys', tablefmt='psql', showindex=False))
 
 #%%
 DATAPATH = Path('./')

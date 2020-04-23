@@ -1,8 +1,6 @@
-from IPython.display import Image
-from tabulate import tabulate
+#from IPython.display import Image
+#from tabulate import tabulate
 
-def pprint_df(dframe):
-    print(tabulate(dframe, headers='keys', tablefmt='psql', showindex=False))
 
 #Run the setup script
 exec(open("setup.py").read())
@@ -21,7 +19,6 @@ while FindContinue:
 #Reference wavelengths for the arclamp
 #The expected format: wavelength and text (ID of the line)
      wavelengthtable = list()
-     #wavelengthtable = list(['Number', 'Wavelength (AA)', 'ID'])
      wavelength = list()
      infile = open('database/mylines_vac.dat', 'r')
      n=1
@@ -35,7 +32,7 @@ while FindContinue:
            wavelengthtable.append([int(n), float(wl), id])
            wavelength.append(wl)
            n+=1
-     wavelengthtable = np.array(wavelengthtable)
+     #wavelengthtable = np.array(wavelengthtable)
      wavelength = np.array(wavelength)
 
 #Read idarc if it exists already
@@ -48,7 +45,7 @@ while FindContinue:
      
      
 #Print wavelengthd
-     df = pd.DataFrame(wavelengthtable)
+     df = pd.DataFrame(wavelengthtable, columns=['Number', 'Wavelength','ID'])
      pprint_df(df)
       
      
@@ -114,8 +111,8 @@ while FindContinue:
      #Print list of pixel numbers and wavelengths to file in the database
      pix_wl_table = np.array(pix_wl_table)
      print(" Pixel to wavelength reference table :")
-     df = pd.DataFrame(pix_wl_table[pix_wl_table[:,1].argsort()],dtype='float32')
-     print(df)
+     df = pd.DataFrame(pix_wl_table[pix_wl_table[:,1].argsort()],dtype='float32', columns=['Pixel number', 'Wavelength'])
+     pprint_df(df)
      df.to_csv('database/idarc.dat', header=None, index=None, sep=' ')
      
      #If there are more than ORDER_ID then run the fitarcdata script

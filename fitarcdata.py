@@ -79,8 +79,8 @@ while FitContinue:
 #Print list of pixel numbers and wavelengths to file in the database
         pix_wl_table_new = np.array(pix_wl_table_new)
         print(" Pixel to wavelength reference table :")
-        df = pd.DataFrame(pix_wl_table_new[pix_wl_table_new[:,1].argsort()],dtype='float32')
-        print(df)
+        df = pd.DataFrame(pix_wl_table[pix_wl_table[:,1].argsort()],dtype='float32', columns=['Pixel number', 'Wavelength'])
+        pprint_df(df)
         df.to_csv('database/idarc.dat', header=None, index=None, sep=' ')
 
     plt.show()
