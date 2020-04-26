@@ -2,14 +2,20 @@ from pathlib import Path
 import numpy as np
 
 from numpy.polynomial.chebyshev import chebfit, chebval
+from numpy.polynomial import Chebyshev
 
-import os as os
-
+import os 
 import sys
 
 from matplotlib import pyplot as plt
 from matplotlib import gridspec, rcParams, rc
 from matplotlib.widgets import Cursor
+from matplotlib.backends.backend_qt5agg import FigureCanvas, NavigationToolbar2QT as NavigationToolbar
+from matplotlib.figure import Figure
+
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
 
 from astropy.table import Table, Column
 from astropy.table import QTable
@@ -26,6 +32,13 @@ from scipy.interpolate import interp1d
 
 import astroscrappy
 import glob
+
+
+
+
+
+
+
 
 from datetime import datetime
 
