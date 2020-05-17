@@ -1,24 +1,28 @@
 # This is a python program to make a specflat frame
 print('Script running')
-nframes = 5
-ysize = 1051
-xsize = 400
-
 import astropy
 import numpy
 from astropy.io import fits
+import glob
+import sys
+
+ysize = 1051
+xsize = 400
 
 #Read in the raw flat frames and subtact mean of overscan region 
-list = open('specflat.list')
+list = glob.glob("A*fits")
+nframes = len(list)
 bigflat = numpy.zeros((nframes,ysize,xsize),float)
 BIASframe = fits.open('../rawbias/BIAS.fits')
 BIAS = numpy.array(BIASframe[0].data)
-for i in range(0,nframes):
-   print('Image number:', i)
-   rawflat = fits.open(str.rstrip(list.readline()))
+i = 0
+for frame in list:
+   print('Image:', frame)
+   rawflat = fits.open(str(frame))
    print('Info on file:')
    print(rawflat.info())
    data = numpy.array(rawflat[1].data)
+   if ((len(data[0,:]) != xsize) or (len(data[:,0]) != ysize)): sys.exit(frame + ' has wrong image size')
    median = numpy.mean(data[1033:ysize-5,0:xsize-1])
    data = data - median
    print('Subtracted the median value of the overscan :',median)
@@ -28,7 +32,7 @@ for i in range(0,nframes):
    norm = numpy.median(bigflat[i-1,100:200,100:300])
    print('Normalised with the median of the frame :',norm)
    bigflat[i-1,:,:] = bigflat[i-1,:,:]/norm
-list.close()
+   i+=1
 
 #Calculate flat is median at each pixel
 medianflat = numpy.median(bigflat,axis=0)
