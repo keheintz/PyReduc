@@ -7,7 +7,7 @@ exec(open("setup.py").read())
 
 # Read idarc from identify.py
 try:
-    data = np.loadtxt('database/idarc.dat')
+    data = np.loadtxt('database/idarc.txt')
     pixnumber = data[:,0]
     wavelength = data[:,1]
 except IOError:
@@ -188,4 +188,34 @@ hdr.set('WAT2_001', 'wtype=linear')
 _ = fits.PrimaryHDU(data=data_trans, header=hdr)
 _.data = _.data.astype('float32')
 _.writeto(DATAPATH/(OBJIMAGE.stem+".trans.fits"), overwrite=True)
+
+#Also make a version with the sky subtracted
+for ncol in range(N_WAVELEN):
+     outimage[:,ncol] = outimage[:,ncol]-np.median(outimage[:,ncol])
+
+data_trans = np.array(outimage)
+hdr = objhdu[0].header
+hdr.add_history(f"rectified using transform.py")
+#del hdr['CD2_1']
+#del hdr['CD1_2']
+#del hdr['LTM1_2']
+#del hdr['LTM2_2']
+hdr.set('CD1_1', dw[0], 'dispersion')
+hdr.set('CD2_2', 1., )
+hdr.set('CDELT1', dw[0], 'dispersion', after=181)
+hdr.set('CTYPE1', 'LINEAR  ')
+hdr.set('CTYPE2', 'LINEAR  ')
+hdr.set('CRVAL1', wavelength[0], 'X at reference point', after=156)
+hdr.set('CRVAL2', 1., 'Y at reference point', after=156)
+hdr.set('CRPIX1', 1.)
+hdr.set('CRPIX2', 1.)
+hdr.set('LTM1_1', 1.)
+hdr.set('LTM2_1', 1.)
+hdr.set('DISPAXIS', 1)
+hdr.set('WAT0_001', 'system=world')
+hdr.set('WAT1_001', 'wtype=linear label=Wavelength units=angstroms')
+hdr.set('WAT2_001', 'wtype=linear')
+_ = fits.PrimaryHDU(data=data_trans, header=hdr)
+_.data = _.data.astype('float32')
+_.writeto(DATAPATH/(OBJIMAGE.stem+".trans.skysub.fits"), overwrite=True)
 

@@ -52,8 +52,8 @@ skyflux = objsky / 10**((chebval(ID_init['wavelength'], coeff_ID) - airmass*exti
 noiseflux = objnoise / 10**((chebval(ID_init['wavelength'], coeff_ID) - airmass*extinterp1d)/2.5) 
 
 fig = plt.figure(figsize=(10,5))
-plt.xlim(3600,9300)
-goodrange = (wavelength > 3600) & (wavelength < 9300)
+plt.xlim(3600,9600)
+goodrange = (wavelength > 3600) & (wavelength < 9600)
 plt.ylim(0,np.amax(optflux[goodrange])*1.2)
 plt.xlabel('lambda i Å')
 plt.ylabel('Flux')

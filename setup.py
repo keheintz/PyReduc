@@ -33,14 +33,12 @@ from scipy.interpolate import interp1d
 import astroscrappy
 import glob
 
-
-
-
-
-
-
+#from PyAstronomy import pyasl
 
 from datetime import datetime
+import locale
+
+locale.setlocale(locale.LC_TIME, "en_GB")
 
 import pandas as pd
 
@@ -76,8 +74,8 @@ LINE_FITTER = LevMarLSQFitter()
 
 #Detector
 #Preferable get this from header. For now just hard-wire the numbers
-GAIN = 0.95 #ADU/electron
-RON = 3.5 #Electrons
+GAIN = 0.16 #electron/ADU
+RON = 4.3 #Electrons
 
 # Parameters for IDENTIFY
 FITTING_MODEL_ID = 'Chebyshev'
@@ -111,7 +109,7 @@ SIGMA_APSKY = 3
 ITERS_APSKY = 5
 ## parameters for aperture tracing
 FITTING_MODEL_APTRACE = 'Chebyshev'
-ORDER_APTRACE = 4
+ORDER_APTRACE = 3
 SIGMA_APTRACE = 3
 ITERS_APTRACE = 5 
 # The fitting is done by SIGMA_APTRACE-sigma ITERS_APTRACE-iters clipped on the
@@ -149,6 +147,7 @@ elif DISPAXIS != 1:
 OBJEXPTIME = objhdu[0].header['EXPTIME']
 OBJAIRMASS = objhdu[0].header['AIRMASS']
 OBJNAME = objhdu[0].header['OBJECT']
+OBJNEXP = objhdu[0].header['NEXP']
 STDEXPTIME = stdhdu[0].header['EXPTIME']
 STDAIRMASS = stdhdu[0].header['AIRMASS']
 STDNAME = stdhdu[0].header['OBJECT']

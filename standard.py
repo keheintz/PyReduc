@@ -8,7 +8,9 @@ exec(open("setup.py").read())
 f = open('database/stdinfo', 'w')
 
 #name of standard star
-stdnm = 'feige66'
+stdnm = 'gd71'
+#stdnm = 'feige110'
+#stdnm = 'bd33d2642'
 
 #get information from header
 std_file = fits.open(STDIMAGE)
@@ -21,7 +23,7 @@ std_data = np.loadtxt('std.ms_1d.dat')
 lam = std_data[:,0]
 stdcounts = std_data[:,1]
 
-f.write("%s  %s  %s\n" % ('#', stdnm, 'std_1d.dat'))
+f.write("%s  %s  %s\n" % ('#', stdnm, 'std.ms_1d.dat'))
 f.write("%5.1f %4.3f\n" % (exptime, airmass))
 f.close
 
@@ -83,7 +85,8 @@ plt.show()
 
 #Write to file
 #Convert micro-Jansky to erg/s/cm/AA (https://en.wikipedia.org/wiki/AB_magnitude)
-flam = refflux/1.e6/3.34e4/reflam**2
+#flam = refflux/1.e6/3.34e4/reflam**2
+flam = 2.998e18*10**(-(refflux+48.6)/2.5)/reflam**2
 
 f = open('database/stddata', 'w')
 for n in range(0,len(reflam)):

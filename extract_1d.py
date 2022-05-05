@@ -1,13 +1,18 @@
 #Run the setup script
 exec(open("setup.py").read())
 
+# =============================================================================
+# reidentify
+# =============================================================================
+# For REIDENTIFY, I used astropy.modeling.models.Chebyshev2D
+
 # Read idarc 
 try:
     data = np.loadtxt('database/idarc.dat')
     pixnumber = data[:,0]
     wavelength = data[:,1]
 except IOError:
-    print("idarc.dat not accessible in the database")
+    print("File not accessible")
 
 
 ID_init = dict(peak=pixnumber,
@@ -37,6 +42,7 @@ for i in range(0, N_REID-1):
         cropped = reidentify_i[search_min:search_max]
         x_cropped = np.arange(len(cropped)) + search_min
         
+        #TODO: put something like "lost_factor" to multiply to FWHM_ID in the bounds.
         A_init = np.max(cropped)
         mean_init = peak_pix_init
         stddev_init = FWHM_ID * gaussian_fwhm_to_sigma
@@ -92,6 +98,8 @@ gs = gridspec.GridSpec(3, 3)
 ax1 = plt.subplot(gs[:2, :2])
 ax2 = plt.subplot(gs[2, :2])
 ax3 = plt.subplot(gs[:2, 2])
+#plt.setp(ax2.get_xticklabels(), visible=False)
+#plt.setp(ax3.get_yticklabels(), visible=False)
 
 title_str = ('Reidentify and Wavelength Map\n'
              + 'func=Chebyshev, order (wavelength, dispersion) = ({:d}, {:d})')
@@ -145,7 +153,7 @@ ax3.set_ylim(0, N_SPATIAL)
 plt.show()
 
 # =============================================================================
-# Plot a cut along the spatial direction for selection of sky and object
+# apall (1): Plot a cut
 # =============================================================================
 lower_cut = N_WAVELEN//2 - NSUM_AP//2 
 upper_cut = N_WAVELEN//2 + NSUM_AP//2
@@ -167,7 +175,7 @@ ax.set_title(title_str.format(np.median(apall_1), int(N_SPATIAL/100)))
 
 
 # =============================================================================
-# manually select trace sky regions
+# apall(2): manually select trace sky regions
 # =============================================================================
 
 print('First click on sky-region left of the trace (start, end), then the trace and finally sky region right of the trace (star, end). End with q')
@@ -190,6 +198,11 @@ ap_sky = np.array([slitregions[0], slitregions[1], slitregions[3], slitregions[4
 
 plt.show()
 
+# Regions to use as sky background. xl1 - 1, xu1, xl2 - 1, xu2. (0-indexing)
+#   Sky region should also move with aperture center!
+#   from ``ap_center - 50`` to ``ap_center - 40``, for example, should be used.
+
+# Interactive check
 x_sky = np.hstack( (np.arange(ap_sky[0], ap_sky[1]), 
                     np.arange(ap_sky[2], ap_sky[3])))
 sky_val = np.hstack( (apall_1[ap_sky[0]:ap_sky[1]], 
@@ -201,6 +214,7 @@ title_str = r'Skyfit: {:s} order {:d} ({:.1f}-sigma {:d}-iters)'
 ax.plot(x_apall, apall_1, lw=1)
 
 if FITTING_MODEL_APSKY.lower() == 'chebyshev':
+    # TODO: maybe the clip is "3-sigma clip to residual and re-fit many times"?
     clip_mask = sigma_clip(sky_val, sigma=SIGMA_APSKY, maxiters=ITERS_APSKY).mask
     coeff_apsky, fitfull = chebfit(x_sky[~clip_mask], 
                                    sky_val[~clip_mask],
@@ -229,7 +243,7 @@ plt.show()
 
 
 # =============================================================================
-# aperture trace
+# apall (3): aperture trace
 # =============================================================================
 # within +- 100 pixels around the aperture, the wavelength does not change much
 # as can be seen from reidentify figure 
@@ -242,7 +256,12 @@ plt.show()
 
 aptrace = []
 aptrace_fwhm = []
+#coeff_apsky = []
+#aptrace_apsum = []
+#aptrace_wavelen = []
 
+# TODO: This is quite slow as for loop used: improvement needed.
+# I guess the problem is sigma-clipping rather than fitting process..
 for i in range(N_AP - 1):
     lower_cut, upper_cut = i*STEP_AP, (i+1)*STEP_AP
     
@@ -252,6 +271,7 @@ for i in range(N_AP - 1):
     
     # Subtract fitted sky
     if FITTING_MODEL_APSKY.lower() == 'chebyshev':
+        # TODO: maybe we can put smoothing function as IRAF APALL's b_naverage 
         clip_mask = sigma_clip(sky_val, sigma=SIGMA_APSKY, maxiters=ITERS_APSKY).mask
         coeff, fitfull = chebfit(x_sky[~clip_mask], 
                                  sky_val[~clip_mask],
@@ -262,6 +282,7 @@ for i in range(N_AP - 1):
     else:
         raise ValueError('Function {:s} is not implemented.'.format(FITTING_MODEL_APSKY))
 
+    #TODO: put something like "lost_factor" to multiply to FWHM_ID in the bounds.
     search_min = int(np.around(ap_init - 3*FWHM_AP))
     search_max = int(np.around(ap_init + 3*FWHM_AP))
     cropped = apall_i[search_min:search_max]
@@ -275,6 +296,7 @@ for i in range(N_AP - 1):
         continue
     peak_pix = peak_pix[0][0]
     
+    #TODO: put something like "lost_factor" to multiply to FWHM_ID in the bounds.
     g_init = Gaussian1D(amplitude=cropped[peak_pix], 
                        mean=peak_pix, 
                        stddev=FWHM_AP * gaussian_fwhm_to_sigma,
@@ -286,13 +308,21 @@ for i in range(N_AP - 1):
     std_pix = fitted.stddev.value
     aptrace_fwhm.append(fitted.fwhm)
     aptrace.append(center_pix)
+#    coeff_apsky.append(coeff)
+#    aptrace_apsum.append(apsum)
+#    apsum_lower = int(np.around(center_pix - apsum_sigma_lower * std_pix))
+#    apsum_upper = int(np.around(center_pix + apsum_sigma_upper * std_pix))
+#    apsum = np.sum(apall_i[apsum_lower:apsum_upper])
 
 aptrace = np.array(aptrace)
 aptrace_fwhm = np.array(aptrace_fwhm)
 
+#coeff_apsky = np.array(coeff_apsky)
+#aptrace_apsum = np.array(aptrace_apsum)
+
 
 # =============================================================================
-# aperture trace fit
+# apall(4): aperture trace fit
 # =============================================================================
 x_aptrace = np.arange(N_AP-1) * STEP_AP
 
@@ -325,9 +355,9 @@ del_aptrace_fwhm = ~np.in1d(x_aptrace, x_aptrace_fwhm_fin) # deleted points
 
 #Plot the center of the trace and the fwhm of the trace and the fits to these
 fig = plt.figure(figsize=(10,10))
-gs = gridspec.GridSpec(3, 1)
-ax2 = plt.subplot(gs[2])
-ax1 = plt.subplot(gs[1], sharex=ax2)
+gs = gridspec.GridSpec(4, 1)
+ax2 = plt.subplot(gs[3])
+ax1 = plt.subplot(gs[1:3], sharex=ax2)
 ax3 = plt.subplot(gs[0], sharex=ax2)
 
 title_str = ('Aperture Trace Fit ({:s} order {:d})\n'
@@ -342,7 +372,7 @@ ax1.legend()
 ax2.plot(x_aptrace_fin, resid_aptrace_fin, ls='', marker='+')
 ax2.axhline(+np.std(resid_aptrace_fin, ddof=1), ls=':', color='k')
 ax2.axhline(-np.std(resid_aptrace_fin, ddof=1), ls=':', color='k', 
-            label='residual std.dev.')
+            label='residual std')
 ax3.plot(x_aptrace, aptrace_fwhm, ls='', marker='+', ms=10)
 ax3.plot(x_aptrace_fwhm_fin, fit_aptrace_fwhm_fin, ls='--',
          label="Aperture Width ({:d}/{:d} used)".format(len(aptrace_fwhm_fin), N_AP-1))
@@ -350,18 +380,18 @@ ax3.plot(x_aptrace_fwhm_fin, fit_aptrace_fwhm_fin, ls='--',
 ax1.set_ylabel('Found object position')
 ax2.set_ylabel('Residual (pixel)')
 ax2.set_xlabel('Dispersion axis (pixel)')
-ax3.set_ylabel('FWHM of trace (pixel)')
+ax3.set_ylabel('FWHM (pixel)')
 ax1.grid(ls=':')
 ax2.grid(ls=':')
 ax3.grid(ls=':')
 ax2.set_ylim(-.5, .5)
-ax3.set_ylim(.3*np.mean(fit_aptrace_fwhm_fin), 2.0*np.mean(fit_aptrace_fwhm_fin))
 ax2.legend()
 plt.show()
+#plt.savefig('aptrace.png', bbox_inches='tight')
 
 
 # =============================================================================
-# aperture sum and Horne weighted sum
+# apall(5): aperture sum
 # =============================================================================
 apsum_sigma_lower = 2.104 # See below
 apsum_sigma_upper = 2.130 
@@ -400,7 +430,8 @@ for i in range(N_WAVELEN):
 
     data_skysub.append(cut_i - chebval(np.arange(cut_i.shape[0]), coeff))
     data_sky.append(chebval(np.arange(cut_i.shape[0]), coeff))
-    data_variance.append((np.abs(cut_i)/GAIN+(RON**2)/GAIN))
+    #data_variance.append((np.abs(cut_i)*GAIN+(OBJNEXP*RON**2)))
+    data_variance.append((np.abs(cut_i)/GAIN+(OBJNEXP*RON/GAIN)**2))
 
 #write out the sky-subtracted and the variance images to fits files
 hdr = objhdu[0].header
@@ -538,7 +569,7 @@ print(" ")
 #Also write spectrum to an ascii-file
 df_frame = {'wave':wavelength, 'optflux':out1, 'sumflux':out2, 'sky':out3, 'opt_sigma':out4}
 df = pd.DataFrame(df_frame,dtype='float32')
-df.to_csv(OBJIMAGE.stem+'.ms_1d.dat', header=None, index=None, sep=' ')
+df.to_csv(OBJIMAGE.stem+'.ms_1dw.dat', header=None, index=None, sep=' ')
 print(" ")
 print("** Wrote output file '%s.ms_1d.dat' ." % OBJIMAGE.stem)
 print(" ")
@@ -552,7 +583,7 @@ plt.xlabel('lambda i Å')
 plt.ylabel('Flux')
 
 plt.xlabel('Observed wavelength [Å]')
-plt.ylabel('Flux [arbitrary units]')
+plt.ylabel('Flux [ADU/sec]')
 
 plt.plot(wavelength, out2, lw = 1,
          alpha=0.5, color='r', label='1d summed spectrum')

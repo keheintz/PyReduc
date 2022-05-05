@@ -400,7 +400,7 @@ for i in range(N_WAVELEN):
 
     data_skysub.append(cut_i - chebval(np.arange(cut_i.shape[0]), coeff))
     data_sky.append(chebval(np.arange(cut_i.shape[0]), coeff))
-    data_variance.append((np.abs(cut_i)/GAIN+(RON**2)/GAIN))
+    data_variance.append((np.abs(cut_i)/GAIN+(RON/GAIN)**2))
 
 #write out the sky-subtracted and the variance images to fits files
 hdr = objhdu[0].header
