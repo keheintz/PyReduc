@@ -430,8 +430,8 @@ for i in range(N_WAVELEN):
 
     data_skysub.append(cut_i - chebval(np.arange(cut_i.shape[0]), coeff))
     data_sky.append(chebval(np.arange(cut_i.shape[0]), coeff))
-    #data_variance.append((np.abs(cut_i)*GAIN+(OBJNEXP*RON**2)))
     data_variance.append((np.abs(cut_i)/GAIN+(OBJNEXP*RON/GAIN)**2))
+#To get this formular look at the noise in electrons and then convert to ADU
 
 #write out the sky-subtracted and the variance images to fits files
 hdr = objhdu[0].header
