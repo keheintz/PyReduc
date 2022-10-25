@@ -7,7 +7,7 @@ exec(open("setup.py").read())
 
 # Read idarc from identify.py
 try:
-    data = np.loadtxt('database/idarc.txt')
+    data = np.loadtxt('database/idarc.dat')
     pixnumber = data[:,0]
     wavelength = data[:,1]
 except IOError:

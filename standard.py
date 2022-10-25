@@ -8,9 +8,9 @@ exec(open("setup.py").read())
 f = open('database/stdinfo', 'w')
 
 #name of standard star
-stdnm = 'gd71'
+#stdnm = 'gd71'
 #stdnm = 'feige110'
-#stdnm = 'bd33d2642'
+stdnm = 'bd33d2642'
 
 #get information from header
 std_file = fits.open(STDIMAGE)
@@ -91,7 +91,7 @@ flam = 2.998e18*10**(-(refflux+48.6)/2.5)/reflam**2
 f = open('database/stddata', 'w')
 for n in range(0,len(reflam)):
      wl = reflam[n]
-     if (wl > np.amin(lam)) & (wl < np.amax(lam)) & (wl not in deleted):
+     if (wl > np.amin(lam)) & (wl < np.amax(lam)) & (wl not in deleted) & (np.abs(wl-7650.) > 80) & (np.abs(wl-6900.) > 60:
            window = (lam > wl-0.5*bandwidth) & (lam < wl+0.5*bandwidth)
            f.write("%.0f   %.3e   %.2f    %.1f\n" %(wl,flam[n],bandwidth,np.mean(stdcounts[window])))
 print('Output files stdinfo and stddata have been written to the database.')
